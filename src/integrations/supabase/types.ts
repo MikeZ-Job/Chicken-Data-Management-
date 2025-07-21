@@ -84,6 +84,7 @@ export type Database = {
           food_type: string
           id: number
           quantity: number | null
+          supplier: string | null
         }
         Insert: {
           date_received?: string | null
@@ -91,6 +92,7 @@ export type Database = {
           food_type: string
           id?: number
           quantity?: number | null
+          supplier?: string | null
         }
         Update: {
           date_received?: string | null
@@ -98,6 +100,7 @@ export type Database = {
           food_type?: string
           id?: number
           quantity?: number | null
+          supplier?: string | null
         }
         Relationships: []
       }
