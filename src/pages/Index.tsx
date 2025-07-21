@@ -12,11 +12,11 @@ const Index = () => {
             Chicken Farm Inventory
           </h1>
           <p className="text-xl text-muted-foreground">
-            Manage your food inventory efficiently
+            Manage your farm inventory efficiently
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -50,6 +50,44 @@ const Index = () => {
               <Button asChild variant="outline" className="w-full">
                 <Link to="/view-food-inventory">
                   View Inventory
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                Add Chicken Inventory
+              </CardTitle>
+              <CardDescription>
+                Add new chickens to your inventory system
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link to="/add-chicken-inventory">
+                  Get Started
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                View Chicken Inventory
+              </CardTitle>
+              <CardDescription>
+                View, search, and manage your chicken inventory
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/view-chicken-inventory">
+                  View Chickens
                 </Link>
               </Button>
             </CardContent>
