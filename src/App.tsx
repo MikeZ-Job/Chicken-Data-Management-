@@ -11,6 +11,8 @@ import AddChickenInventory from "./pages/AddChickenInventory";
 import ViewChickenInventory from "./pages/ViewChickenInventory";
 import AddMedicineInventory from "./pages/AddMedicineInventory";
 import ViewMedicineInventory from "./pages/ViewMedicineInventory";
+import AddWorkerFood from "./pages/AddWorkerFood";
+import ViewWorkerFood from "./pages/ViewWorkerFood";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +30,8 @@ const App = () => (
           <Route path="/view-chicken-inventory" element={<ViewChickenInventory />} />
           <Route path="/add-medicine-inventory" element={<AddMedicineInventory />} />
           <Route path="/view-medicine-inventory" element={<ViewMedicineInventory />} />
+          <Route path="/add-worker-food" element={<AddWorkerFood />} />
+          <Route path="/view-worker-food" element={<ViewWorkerFood />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

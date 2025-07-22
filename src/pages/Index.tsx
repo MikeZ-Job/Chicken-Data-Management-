@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Eye, Pill } from "lucide-react";
+import { Plus, Eye, Pill, Users } from "lucide-react";
 
 const Index = () => {
   return (
@@ -126,6 +126,44 @@ const Index = () => {
               <Button asChild variant="outline" className="w-full">
                 <Link to="/view-medicine-inventory">
                   View Medicines
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-primary" />
+                Add Worker Food
+              </CardTitle>
+              <CardDescription>
+                Record food provided to workers
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link to="/add-worker-food">
+                  Get Started
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                View Worker Food
+              </CardTitle>
+              <CardDescription>
+                View and manage worker food records
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/view-worker-food">
+                  View Records
                 </Link>
               </Button>
             </CardContent>
