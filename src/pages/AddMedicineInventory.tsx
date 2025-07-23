@@ -1,12 +1,11 @@
 import React, { useState } from "react";
+import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
 
 const AddMedicineInventory = () => {
   const [medicineName, setMedicineName] = useState("");
@@ -55,75 +54,70 @@ const AddMedicineInventory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
           <h1 className="text-3xl font-bold">Add Medicine Inventory</h1>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Medicine Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="medicineName">Medicine Name *</Label>
-                <Input
-                  id="medicineName"
-                  type="text"
-                  value={medicineName}
-                  onChange={(e) => setMedicineName(e.target.value)}
-                  required
-                />
-              </div>
+        <div className="max-w-2xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>Medicine Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="medicineName">Medicine Name *</Label>
+                  <Input
+                    id="medicineName"
+                    type="text"
+                    value={medicineName}
+                    onChange={(e) => setMedicineName(e.target.value)}
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  min="0"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    min="0"
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="dateReceived">Date Received</Label>
-                <Input
-                  id="dateReceived"
-                  type="date"
-                  value={dateReceived}
-                  onChange={(e) => setDateReceived(e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="dateReceived">Date Received</Label>
+                  <Input
+                    id="dateReceived"
+                    type="date"
+                    value={dateReceived}
+                    onChange={(e) => setDateReceived(e.target.value)}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="expiryDate">Expiry Date</Label>
-                <Input
-                  id="expiryDate"
-                  type="date"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="expiryDate">Expiry Date</Label>
+                  <Input
+                    id="expiryDate"
+                    type="date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                  />
+                </div>
 
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Adding..." : "Add Medicine"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <Button type="submit" disabled={isSubmitting} className="w-full">
+                  {isSubmitting ? "Adding..." : "Add Medicine"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

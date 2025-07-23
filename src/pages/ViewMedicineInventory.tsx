@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,8 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Search, SortAsc, SortDesc } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Search, SortAsc, SortDesc } from "lucide-react";
 
 interface Medicine {
   id: number;
@@ -137,25 +137,18 @@ const ViewMedicineInventory = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background p-4">
-        <div className="max-w-6xl mx-auto">
+      <Layout>
+        <div className="p-6">
           <div className="text-center">Loading medicines...</div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-6xl mx-auto">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
-          <Link
-            to="/"
-            className="inline-flex items-center text-muted-foreground hover:text-foreground mb-4"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
           <h1 className="text-3xl font-bold">Medicine Inventory</h1>
         </div>
 
@@ -280,7 +273,7 @@ const ViewMedicineInventory = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </Layout>
   );
 };
 

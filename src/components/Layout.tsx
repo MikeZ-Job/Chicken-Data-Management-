@@ -29,6 +29,7 @@ const sidebarItems = [
   { name: "View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
   { name: "Add Worker Food", path: "/add-worker-food", icon: Users },
   { name: "View Worker Food", path: "/view-worker-food", icon: Eye },
+  { name: "Admin Panel", path: "/admin-panel", icon: Bird },
 ];
 
 export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
