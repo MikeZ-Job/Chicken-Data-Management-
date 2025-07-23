@@ -20,7 +20,7 @@ interface LayoutProps {
 }
 
 const sidebarItems = [
-  { name: "Dashboard", path: "/dashboard", icon: Home },
+  { name: "Dashboard", path: "/", icon: Home },
   { name: "Add Food Inventory", path: "/add-food-inventory", icon: Plus },
   { name: "View Food Inventory", path: "/view-food-inventory", icon: Eye },
   { name: "Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
@@ -37,7 +37,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const navigate = useNavigate();
 
   const handleBackToDashboard = () => {
-    navigate("/dashboard");
+    navigate("/");
   };
 
   return (
