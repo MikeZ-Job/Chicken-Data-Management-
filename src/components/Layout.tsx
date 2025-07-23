@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Menu, 
   X, 
@@ -11,7 +12,8 @@ import {
   Bird, 
   Pill, 
   Users,
-  ArrowLeft
+  ArrowLeft,
+  LogOut
 } from "lucide-react";
 
 interface LayoutProps {
@@ -36,9 +38,15 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { signOut, user } = useAuth();
 
   const handleBackToDashboard = () => {
     navigate("/");
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
   };
 
   return (
@@ -124,6 +132,21 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
           <h2 className="text-lg font-semibold text-foreground ml-auto lg:ml-0">
             Chicken Farm Management System
           </h2>
+          
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {user?.email}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </header>
 
         {/* Page content */}

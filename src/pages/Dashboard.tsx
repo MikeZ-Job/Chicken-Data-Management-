@@ -2,15 +2,54 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Layout } from "@/components/Layout";
 import { Link } from "react-router-dom";
 import { Home, Package, Bird, Pill, Users } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Dashboard = () => {
-  // Mock data - in a real app, this would come from your data store
-  const summaryData = {
-    foodItems: 25,
-    chickens: 150,
-    medicineItems: 12,
-    workerFoodRecords: 8
+  const { user } = useAuth();
+  const [summaryData, setSummaryData] = useState({
+    foodItems: 0,
+    chickens: 0,
+    medicineItems: 0,
+    workerFoodRecords: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Get time-based greeting
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   };
+
+  // Fetch real data from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [foodResult, chickenResult, medicineResult, workerFoodResult] = await Promise.all([
+          supabase.from('food_inventory').select('id', { count: 'exact' }),
+          supabase.from('chicken_inventory').select('id', { count: 'exact' }),
+          supabase.from('medicine_inventory').select('id', { count: 'exact' }),
+          supabase.from('worker_food').select('id', { count: 'exact' })
+        ]);
+
+        setSummaryData({
+          foodItems: foodResult.count || 0,
+          chickens: chickenResult.count || 0,
+          medicineItems: medicineResult.count || 0,
+          workerFoodRecords: workerFoodResult.count || 0
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const summaryCards = [
     {
@@ -48,7 +87,7 @@ const Dashboard = () => {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            Farm Dashboard
+            {getGreeting()}, {user?.email?.split('@')[0] || 'User'}!
           </h1>
           <p className="text-muted-foreground">
             Overview of your chicken farm operations
@@ -67,7 +106,9 @@ const Dashboard = () => {
                   <Icon className={`h-4 w-4 ${card.color}`} />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{card.value}</div>
+                  <div className="text-2xl font-bold">
+                    {loading ? "..." : card.value}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {card.description}
                   </p>
