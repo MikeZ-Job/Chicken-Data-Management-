@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
+import { Link } from "react-router-dom";
 import { Home, Package, Bird, Pill, Users } from "lucide-react";
 
 const Dashboard = () => {
@@ -85,22 +86,34 @@ const Dashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
+              <Link 
+                to="/add-food-inventory" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
                 <Package className="h-4 w-4 text-green-600" />
                 <span>Add new food inventory items</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
+              </Link>
+              <Link 
+                to="/add-chicken-inventory" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
                 <Bird className="h-4 w-4 text-blue-600" />
                 <span>Register new chickens</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
+              </Link>
+              <Link 
+                to="/add-medicine-inventory" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
                 <Pill className="h-4 w-4 text-red-600" />
                 <span>Stock medicine supplies</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
+              </Link>
+              <Link 
+                to="/add-worker-food" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
                 <Users className="h-4 w-4 text-purple-600" />
                 <span>Record worker food distribution</span>
-              </div>
+              </Link>
             </CardContent>
           </Card>
 
