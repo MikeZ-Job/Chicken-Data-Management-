@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Eye, Pill, Users } from "lucide-react";
+import { Plus, Eye, Pill, Users, Home } from "lucide-react";
 
 const Index = () => {
   return (
@@ -17,6 +17,24 @@ const Index = () => {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="h-5 w-5 text-primary" />
+                Dashboard
+              </CardTitle>
+              <CardDescription>
+                Overview of your chicken farm operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="w-full">
+                <Link to="/dashboard">
+                  Go to Dashboard
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

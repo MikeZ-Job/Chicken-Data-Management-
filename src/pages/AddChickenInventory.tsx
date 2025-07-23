@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Layout } from "@/components/Layout";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -73,8 +74,9 @@ const AddChickenInventory = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-2xl">
+    <Layout showBackButton={true}>
+      <div className="p-6">
+        <div className="mx-auto max-w-2xl">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Add Chicken Inventory</h1>
           <p className="text-muted-foreground">Add new chickens to your inventory</p>
@@ -169,8 +171,9 @@ const AddChickenInventory = () => {
             </form>
           </CardContent>
         </Card>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 

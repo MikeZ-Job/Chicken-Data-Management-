@@ -1,0 +1,135 @@
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { 
+  Menu, 
+  X, 
+  Home, 
+  Plus, 
+  Eye, 
+  Bird, 
+  Pill, 
+  Users,
+  ArrowLeft
+} from "lucide-react";
+
+interface LayoutProps {
+  children: React.ReactNode;
+  showBackButton?: boolean;
+}
+
+const sidebarItems = [
+  { name: "Dashboard", path: "/dashboard", icon: Home },
+  { name: "Add Food Inventory", path: "/add-food-inventory", icon: Plus },
+  { name: "View Food Inventory", path: "/view-food-inventory", icon: Eye },
+  { name: "Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
+  { name: "View Chicken Inventory", path: "/view-chicken-inventory", icon: Eye },
+  { name: "Add Medicine Inventory", path: "/add-medicine-inventory", icon: Pill },
+  { name: "View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
+  { name: "Add Worker Food", path: "/add-worker-food", icon: Users },
+  { name: "View Worker Food", path: "/view-worker-food", icon: Eye },
+];
+
+export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleBackToDashboard = () => {
+    navigate("/dashboard");
+  };
+
+  return (
+    <div className="flex h-screen bg-background">
+      {/* Mobile sidebar overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-white transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0",
+        sidebarOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+          <h1 className="text-xl font-bold">Farm Management</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden text-white hover:bg-slate-800"
+            onClick={() => setSidebarOpen(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <nav className="flex-1 p-4">
+          <ul className="space-y-2">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              
+              return (
+                <li key={item.path}>
+                  <Link
+                    to={item.path}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col lg:ml-0">
+        {/* Top navigation bar */}
+        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden"
+            onClick={() => setSidebarOpen(true)}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          
+          {showBackButton && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToDashboard}
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+          )}
+          
+          <h2 className="text-lg font-semibold text-foreground ml-auto lg:ml-0">
+            Chicken Farm Management System
+          </h2>
+        </header>
+
+        {/* Page content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
