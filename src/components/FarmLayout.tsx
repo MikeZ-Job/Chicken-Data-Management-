@@ -12,7 +12,16 @@ import EggProductionModule from "./modules/EggProductionModule";
 import SalesModule from "./modules/SalesModule";
 import ExpensesModule from "./modules/ExpensesModule";
 
-type ModuleType = "Dashboard" | "Food Inventory" | "Chicken Health" | "Egg Production" | "Sales" | "Expenses";
+type ModuleType = 
+  | "Dashboard" 
+  | "Add Food Inventory" 
+  | "View Food Inventory" 
+  | "Add Chicken Inventory" 
+  | "View Chicken Inventory" 
+  | "Add Medicine Inventory" 
+  | "View Medicine Inventory" 
+  | "Add Worker Food" 
+  | "View Worker Food";
 
 const menuItems = [
   {
@@ -21,29 +30,44 @@ const menuItems = [
     component: FarmDashboard,
   },
   {
-    title: "Food Inventory" as ModuleType,
+    title: "Add Food Inventory" as ModuleType,
     icon: Package,
-    component: FoodInventoryModule,
+    component: () => <div>Add Food Inventory Module</div>,
   },
   {
-    title: "Chicken Health" as ModuleType,
+    title: "View Food Inventory" as ModuleType,
+    icon: Package,
+    component: () => <div>View Food Inventory Module</div>,
+  },
+  {
+    title: "Add Chicken Inventory" as ModuleType,
     icon: Heart,
-    component: ChickenHealthModule,
+    component: () => <div>Add Chicken Inventory Module</div>,
   },
   {
-    title: "Egg Production" as ModuleType,
-    icon: Egg,
-    component: EggProductionModule,
+    title: "View Chicken Inventory" as ModuleType,
+    icon: Heart,
+    component: () => <div>View Chicken Inventory Module</div>,
   },
   {
-    title: "Sales" as ModuleType,
-    icon: DollarSign,
-    component: SalesModule,
+    title: "Add Medicine Inventory" as ModuleType,
+    icon: Package,
+    component: () => <div>Add Medicine Inventory Module</div>,
   },
   {
-    title: "Expenses" as ModuleType,
-    icon: Receipt,
-    component: ExpensesModule,
+    title: "View Medicine Inventory" as ModuleType,
+    icon: Package,
+    component: () => <div>View Medicine Inventory Module</div>,
+  },
+  {
+    title: "Add Worker Food" as ModuleType,
+    icon: Package,
+    component: () => <div>Add Worker Food Module</div>,
+  },
+  {
+    title: "View Worker Food" as ModuleType,
+    icon: Package,
+    component: () => <div>View Worker Food Module</div>,
   },
 ];
 
@@ -57,16 +81,16 @@ export default function FarmLayout() {
     <div className="min-h-screen flex bg-gray-50">
       {/* Sidebar */}
       <div className={`
-        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-blue-900 text-white transform transition-transform duration-300 ease-in-out
+        fixed lg:static inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-300 ease-in-out
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         <div className="flex flex-col h-full">
           {/* Logo/Header */}
-          <div className="p-6 border-b border-blue-800">
+          <div className="p-6 border-b border-gray-700">
             <div className="flex items-center justify-between">
               <h1 className="text-xl font-bold">🐔 Farm ERP</h1>
               <button 
-                className="lg:hidden"
+                className="lg:hidden text-white hover:text-gray-300"
                 onClick={() => setSidebarOpen(false)}
               >
                 ✕
@@ -87,8 +111,8 @@ export default function FarmLayout() {
                     className={`
                       w-full flex items-center px-4 py-3 rounded-lg text-left transition-colors
                       ${activeModule === item.title
-                        ? "bg-blue-700 text-white"
-                        : "text-blue-100 hover:bg-blue-800 hover:text-white"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-700 hover:text-white"
                       }
                     `}
                   >
