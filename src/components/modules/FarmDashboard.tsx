@@ -8,36 +8,52 @@ export default function FarmDashboard() {
 
   const summaryCards = [
     {
-      title: "Food Inventory Items",
-      value: `${data.food.length}`,
+      title: "Food Inventory",
+      value: `${summary.totalFoodItems} kg`,
       icon: Package,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
-      description: `${summary.totalFoodItems} kg total stock`
+      description: `${data.food.length} items in stock`
     },
     {
-      title: "Total Chickens",
-      value: `${summary.healthyChickens + summary.sickChickens}`,
+      title: "Chicken Health",
+      value: `${summary.healthyChickens}/${summary.healthyChickens + summary.sickChickens}`,
       icon: Heart,
       color: "text-green-600",
       bgColor: "bg-green-50",
-      description: `${summary.healthyChickens} healthy, ${summary.sickChickens} need attention`
+      description: `${summary.sickChickens} chickens need attention`
     },
     {
-      title: "Medicine Items",
-      value: "0",
-      icon: Package,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      description: "Medicine inventory items"
+      title: "Egg Production",
+      value: `${summary.totalEggs}`,
+      icon: Egg,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      description: `${data.eggProduction.length} production records`
     },
     {
-      title: "Worker Food Records",
-      value: "0",
-      icon: Package,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      description: "Worker food tracking records"
+      title: "Total Sales",
+      value: `$${summary.totalSales.toFixed(2)}`,
+      icon: TrendingUp,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      description: `${data.sales.length} transactions`
+    },
+    {
+      title: "Total Expenses",
+      value: `$${summary.totalExpenses.toFixed(2)}`,
+      icon: TrendingDown,
+      color: "text-red-600",
+      bgColor: "bg-red-50",
+      description: `${data.expenses.length} expense records`
+    },
+    {
+      title: "Net Profit",
+      value: `$${(summary.totalSales - summary.totalExpenses).toFixed(2)}`,
+      icon: DollarSign,
+      color: summary.totalSales > summary.totalExpenses ? "text-green-600" : "text-red-600",
+      bgColor: summary.totalSales > summary.totalExpenses ? "bg-green-50" : "bg-red-50",
+      description: "Revenue - Expenses"
     }
   ];
 
