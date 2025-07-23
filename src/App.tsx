@@ -3,8 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppLayout from "./components/AppLayout";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import AddFoodInventory from "./pages/AddFoodInventory";
 import ViewFoodInventory from "./pages/ViewFoodInventory";
@@ -25,7 +25,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/app" element={<AppLayout />} />
           <Route path="/add-food-inventory" element={<AddFoodInventory />} />
           <Route path="/view-food-inventory" element={<ViewFoodInventory />} />
           <Route path="/add-chicken-inventory" element={<AddChickenInventory />} />

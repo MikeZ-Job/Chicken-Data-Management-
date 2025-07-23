@@ -16,8 +16,8 @@ const Index = () => {
           </p>
           <div className="mt-6">
             <Button asChild size="lg">
-              <Link to="/dashboard">
-                Go to Dashboard
+              <Link to="/app">
+                Launch Farm ERP
               </Link>
             </Button>
           </div>
