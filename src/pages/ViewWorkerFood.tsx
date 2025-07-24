@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, SortAsc, SortDesc } from "lucide-react";
+import { useFarm } from "@/contexts/FarmContext";
 
 interface WorkerFood {
   id: number;

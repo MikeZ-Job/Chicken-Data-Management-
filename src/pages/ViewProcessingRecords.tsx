@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { Plus, Search } from "lucide-react";
+import { useFarm } from "@/contexts/FarmContext";
 
 interface ProcessingRecord {
   id: number;
