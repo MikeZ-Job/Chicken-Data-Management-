@@ -31,7 +31,7 @@ export default function ViewProcessingRecords() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState("");
-  const [stackFilter, setStackFilter] = useState("");
+  const [stackFilter, setStackFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"Processing_date" | "total_weight_kg" | "Total_Number_of_Chicken" | "mortality">("Processing_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
@@ -79,7 +79,7 @@ export default function ViewProcessingRecords() {
     }
 
     // Apply stack filter
-    if (stackFilter) {
+    if (stackFilter && stackFilter !== "all") {
       filtered = filtered.filter(record => record.stack_no === stackFilter);
     }
 
@@ -155,7 +155,7 @@ export default function ViewProcessingRecords() {
                   <SelectValue placeholder="Filter by stack" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Stacks</SelectItem>
+                  <SelectItem value="all">All Stacks</SelectItem>
                   {uniqueStacks.map(stack => (
                     <SelectItem key={stack} value={stack}>{stack}</SelectItem>
                   ))}
@@ -189,7 +189,7 @@ export default function ViewProcessingRecords() {
                 onClick={() => {
                   setSearchTerm("");
                   setDateFilter("");
-                  setStackFilter("");
+                  setStackFilter("all");
                   setSortBy("Processing_date");
                   setSortOrder("desc");
                 }}
