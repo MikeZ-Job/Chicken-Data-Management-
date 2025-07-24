@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFarm } from "@/contexts/FarmContext";
 
 const AddChickenInventory = () => {
   const [breed, setBreed] = useState("");
@@ -21,6 +22,7 @@ const AddChickenInventory = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,15 @@ const AddChickenInventory = () => {
       toast({
         title: "Error",
         description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedFarm) {
+      toast({
+        title: "Error",
+        description: "Please select a farm first",
         variant: "destructive",
       });
       return;
@@ -44,6 +55,7 @@ const AddChickenInventory = () => {
           age: parseInt(age),
           health_status: healthStatus,
           date_added: format(dateAdded, "yyyy-MM-dd"),
+          farm_id: selectedFarm.id,
         });
 
       if (error) throw error;

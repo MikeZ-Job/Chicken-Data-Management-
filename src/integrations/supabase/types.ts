@@ -17,6 +17,7 @@ export type Database = {
       "Chicken Processing": {
         Row: {
           avg_weight_per_chicken: number | null
+          farm_id: string | null
           id: number
           manure_kg: number | null
           missing_chickens: number | null
@@ -30,6 +31,7 @@ export type Database = {
         }
         Insert: {
           avg_weight_per_chicken?: number | null
+          farm_id?: string | null
           id?: number
           manure_kg?: number | null
           missing_chickens?: number | null
@@ -43,6 +45,7 @@ export type Database = {
         }
         Update: {
           avg_weight_per_chicken?: number | null
+          farm_id?: string | null
           id?: number
           manure_kg?: number | null
           missing_chickens?: number | null
@@ -54,7 +57,15 @@ export type Database = {
           Total_Number_of_Chicken?: number | null
           total_weight_kg?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Chicken Processing_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chicken_inventory: {
         Row: {
@@ -62,6 +73,7 @@ export type Database = {
           breed: string
           date_added: string | null
           date_removed: string | null
+          farm_id: string | null
           health_status: string | null
           id: number
         }
@@ -70,6 +82,7 @@ export type Database = {
           breed: string
           date_added?: string | null
           date_removed?: string | null
+          farm_id?: string | null
           health_status?: string | null
           id?: number
         }
@@ -78,8 +91,41 @@ export type Database = {
           breed?: string
           date_added?: string | null
           date_removed?: string | null
+          farm_id?: string | null
           health_status?: string | null
           id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chicken_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      farms: {
+        Row: {
+          created_at: string
+          farm_name: string
+          id: string
+          location: string | null
+          owner: string | null
+        }
+        Insert: {
+          created_at?: string
+          farm_name: string
+          id?: string
+          location?: string | null
+          owner?: string | null
+        }
+        Update: {
+          created_at?: string
+          farm_name?: string
+          id?: string
+          location?: string | null
+          owner?: string | null
         }
         Relationships: []
       }
@@ -87,6 +133,7 @@ export type Database = {
         Row: {
           date_received: string | null
           expiry_date: string | null
+          farm_id: string | null
           food_type: string
           id: number
           quantity: number | null
@@ -95,6 +142,7 @@ export type Database = {
         Insert: {
           date_received?: string | null
           expiry_date?: string | null
+          farm_id?: string | null
           food_type: string
           id?: number
           quantity?: number | null
@@ -103,17 +151,27 @@ export type Database = {
         Update: {
           date_received?: string | null
           expiry_date?: string | null
+          farm_id?: string | null
           food_type?: string
           id?: number
           quantity?: number | null
           supplier?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "food_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medicine_inventory: {
         Row: {
           date_received: string | null
           expiry_date: string | null
+          farm_id: string | null
           id: number
           medicine_name: string
           quantity: number | null
@@ -121,6 +179,7 @@ export type Database = {
         Insert: {
           date_received?: string | null
           expiry_date?: string | null
+          farm_id?: string | null
           id?: number
           medicine_name: string
           quantity?: number | null
@@ -128,15 +187,25 @@ export type Database = {
         Update: {
           date_received?: string | null
           expiry_date?: string | null
+          farm_id?: string | null
           id?: number
           medicine_name?: string
           quantity?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "medicine_inventory_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       worker_food: {
         Row: {
           date_provided: string | null
+          farm_id: string | null
           food_type: string | null
           id: number
           quantity: number | null
@@ -144,6 +213,7 @@ export type Database = {
         }
         Insert: {
           date_provided?: string | null
+          farm_id?: string | null
           food_type?: string | null
           id?: number
           quantity?: number | null
@@ -151,12 +221,21 @@ export type Database = {
         }
         Update: {
           date_provided?: string | null
+          farm_id?: string | null
           food_type?: string | null
           id?: number
           quantity?: number | null
           worker_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "worker_food_farm_id_fkey"
+            columns: ["farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

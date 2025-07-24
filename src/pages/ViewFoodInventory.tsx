@@ -9,6 +9,7 @@ import { Layout } from "@/components/Layout";
 import { Plus, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFarm } from "@/contexts/FarmContext";
 
 interface FoodInventoryItem {
   id: number;
@@ -27,10 +28,11 @@ const ViewFoodInventory = () => {
   const [foodTypeFilter, setFoodTypeFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   useEffect(() => {
     fetchInventory();
-  }, []);
+  }, [selectedFarm]);
 
   useEffect(() => {
     filterAndSortInventory();

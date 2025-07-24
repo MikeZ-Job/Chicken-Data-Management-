@@ -27,10 +27,11 @@ const ViewMedicineInventory = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   useEffect(() => {
     fetchMedicines();
-  }, []);
+  }, [selectedFarm]);
 
   useEffect(() => {
     filterAndSortMedicines();

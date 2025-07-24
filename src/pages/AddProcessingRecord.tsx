@@ -8,9 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
+import { useFarm } from "@/contexts/FarmContext";
 
 const formSchema = z.object({
   date: z.string().min(1, "Date is required"),
@@ -30,6 +31,8 @@ export default function AddProcessingRecord() {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [avgWeight, setAvgWeight] = useState<number | null>(null);
+  const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,8 +63,17 @@ export default function AddProcessingRecord() {
   }, [totalWeight, totalChickens]);
 
   const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+    if (!selectedFarm) {
+      toast({
+        title: "Error",
+        description: "Please select a farm first",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsSubmitting(true);
+    
     try {
       const avgWeightPerChicken = data.total_weight_kg / data.total_chickens;
 
@@ -79,6 +91,7 @@ export default function AddProcessingRecord() {
             manure_kg: data.manure_kg,
             avg_weight_per_chicken: avgWeightPerChicken,
             remarks: data.remarks,
+            farm_id: selectedFarm.id,
           },
         ]);
 
@@ -86,11 +99,18 @@ export default function AddProcessingRecord() {
         throw error;
       }
 
-      toast.success("Processing record added successfully!");
+      toast({
+        title: "Success",
+        description: "Processing record added successfully!",
+      });
       navigate("/view-processing-records");
     } catch (error) {
       console.error("Error adding processing record:", error);
-      toast.error("Failed to add processing record. Please try again.");
+      toast({
+        title: "Error", 
+        description: "Failed to add processing record. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }

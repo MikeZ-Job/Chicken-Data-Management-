@@ -27,12 +27,13 @@ const ViewWorkerFood = () => {
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   const [uniqueFoodTypes, setUniqueFoodTypes] = useState<string[]>([]);
 
   useEffect(() => {
     fetchWorkerFoodRecords();
-  }, []);
+  }, [selectedFarm]);
 
   useEffect(() => {
     filterAndSortRecords();

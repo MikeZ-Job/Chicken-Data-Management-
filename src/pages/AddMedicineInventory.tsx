@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useFarm } from "@/contexts/FarmContext";
 
 const AddMedicineInventory = () => {
   const [medicineName, setMedicineName] = useState("");
@@ -14,10 +15,20 @@ const AddMedicineInventory = () => {
   const [expiryDate, setExpiryDate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { selectedFarm } = useFarm();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    if (!selectedFarm) {
+      toast({
+        title: "Error",
+        description: "Please select a farm first",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -27,6 +38,7 @@ const AddMedicineInventory = () => {
           quantity: parseInt(quantity),
           date_received: dateReceived || null,
           expiry_date: expiryDate || null,
+          farm_id: selectedFarm.id,
         });
 
       if (error) throw error;

@@ -34,10 +34,11 @@ export default function ViewProcessingRecords() {
   const [stackFilter, setStackFilter] = useState("all");
   const [sortBy, setSortBy] = useState<"Processing_date" | "total_weight_kg" | "Total_Number_of_Chicken" | "mortality">("Processing_date");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const { selectedFarm } = useFarm();
 
   useEffect(() => {
     fetchRecords();
-  }, []);
+  }, [selectedFarm]);
 
   useEffect(() => {
     filterAndSortRecords();

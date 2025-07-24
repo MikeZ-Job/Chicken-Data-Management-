@@ -19,6 +19,7 @@ import AddProcessingRecord from "./pages/AddProcessingRecord";
 import ViewProcessingRecords from "./pages/ViewProcessingRecords";
 import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { FarmProvider } from "./contexts/FarmContext";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
+      <FarmProvider>
+        <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
@@ -116,6 +118,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
+      </FarmProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

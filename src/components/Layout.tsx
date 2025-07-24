@@ -3,6 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { useFarm } from "@/contexts/FarmContext";
+import { FarmSelector } from "@/components/FarmSelector";
 import { 
   Menu, 
   X, 
@@ -86,6 +88,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+  const { selectedFarm } = useFarm();
 
   // Auto-expand section if it contains the current active route
   const getExpandedSectionsWithActive = () => {
@@ -133,7 +136,14 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h1 className="text-xl font-bold">Farm Management</h1>
+          <div>
+            <h1 className="text-xl font-bold">Farm Management</h1>
+            {selectedFarm && (
+              <p className="text-sm text-slate-400 mt-1">
+                🏠 {selectedFarm.farm_name}
+              </p>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -237,7 +247,9 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
             Chicken Farm Management System
           </h2>
           
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ml-auto flex items-center gap-4">
+            <FarmSelector />
+            <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
               {user?.email}
             </span>
@@ -250,6 +262,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
+            </div>
           </div>
         </header>
 
