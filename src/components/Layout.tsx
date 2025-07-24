@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useFarm } from "@/contexts/FarmContext";
 import { FarmSelector } from "@/components/FarmSelector";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { 
   Menu, 
   X, 
@@ -248,6 +249,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
           </h2>
           
           <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
             <FarmSelector />
             <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
