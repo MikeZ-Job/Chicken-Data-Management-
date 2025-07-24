@@ -21,17 +21,54 @@ interface LayoutProps {
   showBackButton?: boolean;
 }
 
-const sidebarItems = [
-  { name: "Dashboard", path: "/", icon: Home },
-  { name: "Add Food Inventory", path: "/add-food-inventory", icon: Plus },
-  { name: "View Food Inventory", path: "/view-food-inventory", icon: Eye },
-  { name: "Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
-  { name: "View Chicken Inventory", path: "/view-chicken-inventory", icon: Eye },
-  { name: "Add Medicine Inventory", path: "/add-medicine-inventory", icon: Pill },
-  { name: "View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
-  { name: "Add Worker Food", path: "/add-worker-food", icon: Users },
-  { name: "View Worker Food", path: "/view-worker-food", icon: Eye },
-  { name: "Admin Panel", path: "/admin-panel", icon: Bird },
+const sidebarGroups = [
+  {
+    title: "🐓 Farm Management",
+    items: [
+      { name: "🏠 Dashboard", path: "/", icon: Home },
+    ]
+  },
+  {
+    title: "🍽 Food Inventory",
+    items: [
+      { name: "➕ Add Food Inventory", path: "/add-food-inventory", icon: Plus },
+      { name: "👁 View Food Inventory", path: "/view-food-inventory", icon: Eye },
+    ]
+  },
+  {
+    title: "🐔 Chicken Inventory",
+    items: [
+      { name: "➕ Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
+      { name: "👁 View Chicken Inventory", path: "/view-chicken-inventory", icon: Eye },
+    ]
+  },
+  {
+    title: "💊 Medicine Inventory",
+    items: [
+      { name: "✏️ Add Medicine Inventory", path: "/add-medicine-inventory", icon: Pill },
+      { name: "👁 View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
+    ]
+  },
+  {
+    title: "👷 Worker Food Records",
+    items: [
+      { name: "➕ Add Worker Food", path: "/add-worker-food", icon: Users },
+      { name: "👁 View Worker Food", path: "/view-worker-food", icon: Eye },
+    ]
+  },
+  {
+    title: "⚙️ Processing Records",
+    items: [
+      { name: "➕ Add Processing Record", path: "/add-processing-record", icon: Plus },
+      { name: "👁 View Processing Records", path: "/view-processing-records", icon: Eye },
+    ]
+  },
+  {
+    title: "🛠 Admin Panel",
+    items: [
+      { name: "🛠 Admin Panel", path: "/admin-panel", icon: Bird },
+    ]
+  },
 ];
 
 export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
@@ -77,30 +114,39 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
         </div>
 
         <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {sidebarItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              
-              return (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                    )}
-                    onClick={() => setSidebarOpen(false)}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span className="text-sm font-medium">{item.name}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="space-y-4">
+            {sidebarGroups.map((group, groupIndex) => (
+              <div key={groupIndex}>
+                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 px-3">
+                  {group.title}
+                </h3>
+                <ul className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = location.pathname === item.path;
+                    
+                    return (
+                      <li key={item.path}>
+                        <Link
+                          to={item.path}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                            isActive
+                              ? "bg-primary text-primary-foreground"
+                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          )}
+                          onClick={() => setSidebarOpen(false)}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span className="text-sm font-medium">{item.name}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
+          </div>
         </nav>
       </div>
 
