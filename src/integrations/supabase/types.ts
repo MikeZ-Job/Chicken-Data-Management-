@@ -16,36 +16,42 @@ export type Database = {
     Tables: {
       "Chicken Processing": {
         Row: {
-          avg_weight_per_crate: number | null
+          avg_weight_per_chicken: number | null
           id: number
           manure_kg: number | null
           missing_chickens: number | null
           mortality: number | null
           num_crates: number | null
           Processing_date: string
+          remarks: string | null
           stack_no: string | null
+          Total_Number_of_Chicken: number | null
           total_weight_kg: number | null
         }
         Insert: {
-          avg_weight_per_crate?: number | null
+          avg_weight_per_chicken?: number | null
           id?: number
           manure_kg?: number | null
           missing_chickens?: number | null
           mortality?: number | null
           num_crates?: number | null
           Processing_date: string
+          remarks?: string | null
           stack_no?: string | null
+          Total_Number_of_Chicken?: number | null
           total_weight_kg?: number | null
         }
         Update: {
-          avg_weight_per_crate?: number | null
+          avg_weight_per_chicken?: number | null
           id?: number
           manure_kg?: number | null
           missing_chickens?: number | null
           mortality?: number | null
           num_crates?: number | null
           Processing_date?: string
+          remarks?: string | null
           stack_no?: string | null
+          Total_Number_of_Chicken?: number | null
           total_weight_kg?: number | null
         }
         Relationships: []

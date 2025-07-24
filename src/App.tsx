@@ -15,6 +15,8 @@ import AddMedicineInventory from "./pages/AddMedicineInventory";
 import ViewMedicineInventory from "./pages/ViewMedicineInventory";
 import AddWorkerFood from "./pages/AddWorkerFood";
 import ViewWorkerFood from "./pages/ViewWorkerFood";
+import AddProcessingRecord from "./pages/AddProcessingRecord";
+import ViewProcessingRecords from "./pages/ViewProcessingRecords";
 import AdminPanel from "./pages/AdminPanel";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 
@@ -92,6 +94,16 @@ const App = () => (
             <Route path="/view-worker-food" element={
               <ProtectedRoute>
                 <ViewWorkerFood />
+              </ProtectedRoute>
+            } />
+            <Route path="/add-processing-record" element={
+              <ProtectedRoute>
+                <AddProcessingRecord />
+              </ProtectedRoute>
+            } />
+            <Route path="/view-processing-records" element={
+              <ProtectedRoute>
+                <ViewProcessingRecords />
               </ProtectedRoute>
             } />
             <Route path="/admin-panel" element={

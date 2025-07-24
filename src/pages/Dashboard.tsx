@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Layout } from "@/components/Layout";
 import { Link } from "react-router-dom";
-import { Home, Package, Bird, Pill, Users } from "lucide-react";
+import { Home, Package, Bird, Pill, Users, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -12,7 +12,8 @@ const Dashboard = () => {
     foodItems: 0,
     chickens: 0,
     medicineItems: 0,
-    workerFoodRecords: 0
+    workerFoodRecords: 0,
+    processingRecords: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -28,18 +29,20 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [foodResult, chickenResult, medicineResult, workerFoodResult] = await Promise.all([
+        const [foodResult, chickenResult, medicineResult, workerFoodResult, processingResult] = await Promise.all([
           supabase.from('food_inventory').select('id', { count: 'exact' }),
           supabase.from('chicken_inventory').select('id', { count: 'exact' }),
           supabase.from('medicine_inventory').select('id', { count: 'exact' }),
-          supabase.from('worker_food').select('id', { count: 'exact' })
+          supabase.from('worker_food').select('id', { count: 'exact' }),
+          supabase.from('Chicken Processing').select('id', { count: 'exact' })
         ]);
 
         setSummaryData({
           foodItems: foodResult.count || 0,
           chickens: chickenResult.count || 0,
           medicineItems: medicineResult.count || 0,
-          workerFoodRecords: workerFoodResult.count || 0
+          workerFoodRecords: workerFoodResult.count || 0,
+          processingRecords: processingResult.count || 0
         });
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
@@ -79,6 +82,13 @@ const Dashboard = () => {
       description: "Total worker food entries",
       icon: Users,
       color: "text-purple-600"
+    },
+    {
+      title: "Processing Records",
+      value: summaryData.processingRecords,
+      description: "Total processing records",
+      icon: FileText,
+      color: "text-orange-600"
     }
   ];
 
@@ -154,6 +164,20 @@ const Dashboard = () => {
               >
                 <Users className="h-4 w-4 text-purple-600" />
                 <span>Record worker food distribution</span>
+              </Link>
+              <Link 
+                to="/add-processing-record" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <FileText className="h-4 w-4 text-orange-600" />
+                <span>Add new processing record</span>
+              </Link>
+              <Link 
+                to="/view-processing-records" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <FileText className="h-4 w-4 text-orange-600" />
+                <span>View processing records</span>
               </Link>
             </CardContent>
           </Card>
