@@ -13,7 +13,9 @@ import {
   Pill, 
   Users,
   ArrowLeft,
-  LogOut
+  LogOut,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react";
 
 interface LayoutProps {
@@ -24,12 +26,14 @@ interface LayoutProps {
 const sidebarGroups = [
   {
     title: "🐓 Farm Management",
+    collapsible: false,
     items: [
       { name: "🏠 Dashboard", path: "/", icon: Home },
     ]
   },
   {
     title: "🍽 Food Inventory",
+    collapsible: true,
     items: [
       { name: "➕ Add Food Inventory", path: "/add-food-inventory", icon: Plus },
       { name: "👁 View Food Inventory", path: "/view-food-inventory", icon: Eye },
@@ -37,6 +41,7 @@ const sidebarGroups = [
   },
   {
     title: "🐔 Chicken Inventory",
+    collapsible: true,
     items: [
       { name: "➕ Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
       { name: "👁 View Chicken Inventory", path: "/view-chicken-inventory", icon: Eye },
@@ -44,6 +49,7 @@ const sidebarGroups = [
   },
   {
     title: "💊 Medicine Inventory",
+    collapsible: true,
     items: [
       { name: "✏️ Add Medicine Inventory", path: "/add-medicine-inventory", icon: Pill },
       { name: "👁 View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
@@ -51,6 +57,7 @@ const sidebarGroups = [
   },
   {
     title: "👷 Worker Food Records",
+    collapsible: true,
     items: [
       { name: "➕ Add Worker Food", path: "/add-worker-food", icon: Users },
       { name: "👁 View Worker Food", path: "/view-worker-food", icon: Eye },
@@ -58,6 +65,7 @@ const sidebarGroups = [
   },
   {
     title: "⚙️ Processing Records",
+    collapsible: true,
     items: [
       { name: "➕ Add Processing Record", path: "/add-processing-record", icon: Plus },
       { name: "👁 View Processing Records", path: "/view-processing-records", icon: Eye },
@@ -65,6 +73,7 @@ const sidebarGroups = [
   },
   {
     title: "🛠 Admin Panel",
+    collapsible: false,
     items: [
       { name: "🛠 Admin Panel", path: "/admin-panel", icon: Bird },
     ]
@@ -73,9 +82,31 @@ const sidebarGroups = [
 
 export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0, 6])); // Default: Farm Management and Admin Panel always expanded
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
+
+  // Auto-expand section if it contains the current active route
+  const getExpandedSectionsWithActive = () => {
+    const expanded = new Set(expandedSections);
+    sidebarGroups.forEach((group, index) => {
+      if (group.collapsible && group.items.some(item => item.path === location.pathname)) {
+        expanded.add(index);
+      }
+    });
+    return expanded;
+  };
+
+  const toggleSection = (index: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedSections(newExpanded);
+  };
 
   const handleBackToDashboard = () => {
     navigate("/");
@@ -114,38 +145,65 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
         </div>
 
         <nav className="flex-1 p-4">
-          <div className="space-y-4">
-            {sidebarGroups.map((group, groupIndex) => (
-              <div key={groupIndex}>
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 px-3">
-                  {group.title}
-                </h3>
-                <ul className="space-y-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = location.pathname === item.path;
-                    
-                    return (
-                      <li key={item.path}>
-                        <Link
-                          to={item.path}
-                          className={cn(
-                            "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
-                            isActive
-                              ? "bg-primary text-primary-foreground"
-                              : "text-slate-300 hover:bg-slate-800 hover:text-white"
-                          )}
-                          onClick={() => setSidebarOpen(false)}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span className="text-sm font-medium">{item.name}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))}
+          <div className="space-y-2">
+            {sidebarGroups.map((group, groupIndex) => {
+              const currentExpandedSections = getExpandedSectionsWithActive();
+              const isExpanded = !group.collapsible || currentExpandedSections.has(groupIndex);
+              
+              return (
+                <div key={groupIndex}>
+                  <div 
+                    className={cn(
+                      "flex items-center justify-between px-3 py-2 mb-1",
+                      group.collapsible 
+                        ? "cursor-pointer hover:bg-slate-800 rounded-lg transition-colors" 
+                        : ""
+                    )}
+                    onClick={group.collapsible ? () => toggleSection(groupIndex) : undefined}
+                  >
+                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                      {group.title}
+                    </h3>
+                    {group.collapsible && (
+                      <div className="text-slate-400">
+                        {isExpanded ? (
+                          <ChevronDown className="h-3 w-3" />
+                        ) : (
+                          <ChevronRight className="h-3 w-3" />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {isExpanded && (
+                    <ul className="space-y-1 mb-3">
+                      {group.items.map((item) => {
+                        const Icon = item.icon;
+                        const isActive = location.pathname === item.path;
+                        
+                        return (
+                          <li key={item.path}>
+                            <Link
+                              to={item.path}
+                              className={cn(
+                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                                isActive
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                              )}
+                              onClick={() => setSidebarOpen(false)}
+                            >
+                              <Icon className="h-4 w-4" />
+                              <span className="text-sm font-medium">{item.name}</span>
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </nav>
       </div>
