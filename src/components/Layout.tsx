@@ -222,7 +222,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
       {/* Main content */}
       <div className="flex-1 flex flex-col lg:ml-0">
         {/* Top navigation bar */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-4">
+        <header className="bg-background border-b border-border px-4 py-3 flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
