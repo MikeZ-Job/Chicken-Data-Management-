@@ -28,57 +28,57 @@ interface LayoutProps {
 
 const sidebarGroups = [
   {
-    title: "🐓 Farm Management",
+    title: "Farm Management",
     collapsible: false,
     items: [
-      { name: "🏠 Dashboard", path: "/", icon: Home },
+      { name: "Dashboard", path: "/" },
     ]
   },
   {
-    title: "🍽 Food Inventory",
+    title: "Food Inventory",
     collapsible: true,
     items: [
-      { name: "➕ Add Food Inventory", path: "/add-food-inventory", icon: Plus },
-      { name: "👁 View Food Inventory", path: "/view-food-inventory", icon: Eye },
+      { name: "Add Food Inventory", path: "/add-food-inventory" },
+      { name: "View Food Inventory", path: "/view-food-inventory" },
     ]
   },
   {
-    title: "🐔 Chicken Inventory",
+    title: "Chicken Inventory",
     collapsible: true,
     items: [
-      { name: "➕ Add Chicken Inventory", path: "/add-chicken-inventory", icon: Plus },
-      { name: "👁 View Chicken Inventory", path: "/view-chicken-inventory", icon: Eye },
+      { name: "Add Chicken Inventory", path: "/add-chicken-inventory" },
+      { name: "View Chicken Inventory", path: "/view-chicken-inventory" },
     ]
   },
   {
-    title: "💊 Medicine Inventory",
+    title: "Medicine Inventory",
     collapsible: true,
     items: [
-      { name: "✏️ Add Medicine Inventory", path: "/add-medicine-inventory", icon: Pill },
-      { name: "👁 View Medicine Inventory", path: "/view-medicine-inventory", icon: Eye },
+      { name: "Add Medicine Inventory", path: "/add-medicine-inventory" },
+      { name: "View Medicine Inventory", path: "/view-medicine-inventory" },
     ]
   },
   {
-    title: "👷 Worker Food Records",
+    title: "Worker Food Records",
     collapsible: true,
     items: [
-      { name: "➕ Add Worker Food", path: "/add-worker-food", icon: Users },
-      { name: "👁 View Worker Food", path: "/view-worker-food", icon: Eye },
+      { name: "Add Worker Food", path: "/add-worker-food" },
+      { name: "View Worker Food", path: "/view-worker-food" },
     ]
   },
   {
-    title: "⚙️ Processing Records",
+    title: "Processing Records",
     collapsible: true,
     items: [
-      { name: "➕ Add Processing Record", path: "/add-processing-record", icon: Plus },
-      { name: "👁 View Processing Records", path: "/view-processing-records", icon: Eye },
+      { name: "Add Processing Record", path: "/add-processing-record" },
+      { name: "View Processing Records", path: "/view-processing-records" },
     ]
   },
   {
-    title: "🛠 Admin Panel",
+    title: "Admin Panel",
     collapsible: false,
     items: [
-      { name: "🛠 Admin Panel", path: "/admin-panel", icon: Bird },
+      { name: "Admin Panel", path: "/admin-panel" },
     ]
   },
 ];
@@ -141,7 +141,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
             <h1 className="text-xl font-bold">Farm Management</h1>
             {selectedFarm && (
               <p className="text-sm text-slate-400 mt-1">
-                🏠 {selectedFarm.farm_name}
+                {selectedFarm.farm_name}
               </p>
             )}
           </div>
@@ -189,7 +189,6 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
                   {isExpanded && (
                     <ul className="space-y-1 mb-3">
                       {group.items.map((item) => {
-                        const Icon = item.icon;
                         const isActive = location.pathname === item.path;
                         
                         return (
@@ -197,14 +196,13 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
                             <Link
                               to={item.path}
                               className={cn(
-                                "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors",
+                                "flex items-center px-3 py-2 rounded-lg transition-colors",
                                 isActive
                                   ? "bg-primary text-primary-foreground"
                                   : "text-slate-300 hover:bg-slate-800 hover:text-white"
                               )}
                               onClick={() => setSidebarOpen(false)}
                             >
-                              <Icon className="h-4 w-4" />
                               <span className="text-sm font-medium">{item.name}</span>
                             </Link>
                           </li>
