@@ -19,6 +19,13 @@ import ViewWorkerFood from "./pages/ViewWorkerFood";
 import AddProcessingRecord from "./pages/AddProcessingRecord";
 import ViewProcessingRecords from "./pages/ViewProcessingRecords";
 import AdminPanel from "./pages/AdminPanel";
+// Report imports
+import FoodInventoryReport from "./pages/reports/FoodInventoryReport";
+import ChickenInventoryReport from "./pages/reports/ChickenInventoryReport";
+import MedicineInventoryReport from "./pages/reports/MedicineInventoryReport";
+import WorkerFoodReport from "./pages/reports/WorkerFoodReport";
+import ProcessingRecordsReport from "./pages/reports/ProcessingRecordsReport";
+import FarmSummaryReport from "./pages/reports/FarmSummaryReport";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { FarmProvider } from "./contexts/FarmContext";
 
@@ -113,6 +120,37 @@ const App = () => (
             <Route path="/admin-panel" element={
               <ProtectedRoute>
                 <AdminPanel />
+              </ProtectedRoute>
+            } />
+            {/* Report Routes */}
+            <Route path="/reports/food-inventory" element={
+              <ProtectedRoute>
+                <FoodInventoryReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/chicken-inventory" element={
+              <ProtectedRoute>
+                <ChickenInventoryReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/medicine-inventory" element={
+              <ProtectedRoute>
+                <MedicineInventoryReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/worker-food" element={
+              <ProtectedRoute>
+                <WorkerFoodReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/processing-records" element={
+              <ProtectedRoute>
+                <ProcessingRecordsReport />
+              </ProtectedRoute>
+            } />
+            <Route path="/reports/farm-summary" element={
+              <ProtectedRoute>
+                <FarmSummaryReport />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

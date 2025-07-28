@@ -75,6 +75,18 @@ const sidebarGroups = [
     ]
   },
   {
+    title: "Reports",
+    collapsible: true,
+    items: [
+      { name: "Food Inventory Report", path: "/reports/food-inventory" },
+      { name: "Chicken Inventory Report", path: "/reports/chicken-inventory" },
+      { name: "Medicine Inventory Report", path: "/reports/medicine-inventory" },
+      { name: "Worker Food Report", path: "/reports/worker-food" },
+      { name: "Processing Records Report", path: "/reports/processing-records" },
+      { name: "Farm Summary Report", path: "/reports/farm-summary" },
+    ]
+  },
+  {
     title: "Admin Panel",
     collapsible: false,
     items: [
