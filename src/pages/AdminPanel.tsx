@@ -42,10 +42,14 @@ const AdminPanel = () => {
   ]);
   
   const [colors, setColors] = useState<SystemColor[]>([
-    { name: "Primary", value: "#0ea5e9", cssVar: "--primary" },
-    { name: "Secondary", value: "#6b7280", cssVar: "--secondary" },
-    { name: "Background", value: "#ffffff", cssVar: "--background" },
-    { name: "Foreground", value: "#0f172a", cssVar: "--foreground" },
+    { name: "Primary", value: "199 89% 48%", cssVar: "--primary" },
+    { name: "Secondary", value: "210 40% 98%", cssVar: "--secondary" },
+    { name: "Background", value: "0 0% 100%", cssVar: "--background" },
+    { name: "Foreground", value: "222 84% 5%", cssVar: "--foreground" },
+    { name: "Card", value: "0 0% 100%", cssVar: "--card" },
+    { name: "Card Foreground", value: "222 84% 5%", cssVar: "--card-foreground" },
+    { name: "Muted", value: "210 40% 96%", cssVar: "--muted" },
+    { name: "Muted Foreground", value: "215 16% 47%", cssVar: "--muted-foreground" },
   ]);
 
   const [newUser, setNewUser] = useState({ email: "", role: "user", permissions: [] as string[] });
@@ -98,15 +102,45 @@ const AdminPanel = () => {
     });
   };
 
+  const hexToHsl = (hex: string) => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+  };
+
   const updateColor = (index: number, newValue: string) => {
     const updatedColors = [...colors];
-    updatedColors[index].value = newValue;
+    
+    // Convert hex to HSL if it's a hex color
+    if (newValue.startsWith('#')) {
+      updatedColors[index].value = hexToHsl(newValue);
+    } else {
+      updatedColors[index].value = newValue;
+    }
+    
     setColors(updatedColors);
     
     // Apply the color change to CSS variables
     document.documentElement.style.setProperty(
       updatedColors[index].cssVar,
-      newValue
+      updatedColors[index].value
     );
     
     toast({
@@ -279,7 +313,10 @@ const AdminPanel = () => {
                       <div className="flex items-center gap-3">
                         <Input
                           type="color"
-                          value={color.value}
+                          value={`#${color.value.split(' ').map(v => {
+                            const num = parseInt(v.replace('%', ''));
+                            return Math.round(num * 255 / 100).toString(16).padStart(2, '0');
+                          }).join('')}`}
                           onChange={(e) => updateColor(index, e.target.value)}
                           className="w-16 h-10 p-1 border rounded"
                         />
@@ -288,12 +325,16 @@ const AdminPanel = () => {
                           value={color.value}
                           onChange={(e) => updateColor(index, e.target.value)}
                           className="flex-1"
+                          placeholder="H S% L% (e.g., 199 89% 48%)"
                         />
                         <div 
                           className="w-10 h-10 rounded border"
-                          style={{ backgroundColor: color.value }}
+                          style={{ backgroundColor: `hsl(${color.value})` }}
                         />
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        CSS Variable: {color.cssVar}
+                      </p>
                     </div>
                   ))}
                 </div>
