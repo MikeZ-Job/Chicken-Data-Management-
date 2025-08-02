@@ -263,7 +263,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
             <FarmSelector />
             <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {user?.email}
+              {user?.username}
             </span>
             <Button
               variant="ghost"

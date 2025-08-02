@@ -97,7 +97,7 @@ const Dashboard = () => {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, {user?.email?.split('@')[0] || 'User'}!
+            {getGreeting()}, {user?.username || 'User'}!
           </h1>
           <p className="text-muted-foreground">
             Overview of your chicken farm operations
