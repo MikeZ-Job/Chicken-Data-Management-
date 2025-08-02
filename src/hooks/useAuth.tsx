@@ -1,64 +1,47 @@
 import { useState, useEffect, createContext, useContext } from "react";
-
-interface User {
-  username: string;
-  role: string;
-}
+import { User, Session } from "@supabase/supabase-js";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   loading: boolean;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for existing user in localStorage
-    const currentUser = localStorage.getItem("currentUser");
-    if (currentUser) {
-      try {
-        const userData = JSON.parse(currentUser);
-        setUser(userData);
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-        localStorage.removeItem("currentUser");
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    );
 
-    // Listen for storage changes (login/logout from other tabs)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "currentUser") {
-        if (e.newValue) {
-          try {
-            const userData = JSON.parse(e.newValue);
-            setUser(userData);
-          } catch (error) {
-            console.error("Error parsing user data:", error);
-            setUser(null);
-          }
-        } else {
-          setUser(null);
-        }
-      }
-    };
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = () => {
-    localStorage.removeItem("currentUser");
-    setUser(null);
+  const signOut = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

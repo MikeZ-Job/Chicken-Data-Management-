@@ -54,8 +54,7 @@ const Auth = () => {
       // Simple username/password authentication
       const mockUsers = [
         { username: "admin", password: "admin123", role: "admin" },
-        { username: "manager", password: "manager123", role: "manager" },
-        { username: "Mike", password: "123456", role: "admin" }
+        { username: "manager", password: "manager123", role: "manager" }
       ];
 
       const user = mockUsers.find(u => u.username === username && u.password === password);

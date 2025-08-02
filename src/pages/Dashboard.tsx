@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import { Home, Package, Bird, Pill, Users, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+
 const Dashboard = () => {
+  const { user } = useAuth();
   const [summaryData, setSummaryData] = useState({
     foodItems: 0,
     chickens: 0,
@@ -94,7 +97,7 @@ const Dashboard = () => {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, Manager!
+            {getGreeting()}, {user?.email?.split('@')[0] || 'User'}!
           </h1>
           <p className="text-muted-foreground">
             Overview of your chicken farm operations

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-// No auth import needed
+import { useAuth } from "@/hooks/useAuth";
 import { useFarm } from "@/contexts/FarmContext";
 import { FarmSelector } from "@/components/FarmSelector";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -100,7 +100,7 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0, 6])); // Default: Farm Management and Admin Panel always expanded
   const location = useLocation();
   const navigate = useNavigate();
-  // No auth needed
+  const { signOut, user } = useAuth();
   const { selectedFarm } = useFarm();
 
   // Auto-expand section if it contains the current active route
@@ -128,7 +128,10 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
     navigate("/");
   };
 
-  // No sign out needed
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -256,8 +259,22 @@ export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
           </h2>
           
           <div className="ml-auto flex items-center gap-4">
-            <FarmSelector />
             <ThemeToggle />
+            <FarmSelector />
+            <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {user?.email}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+            </div>
           </div>
         </header>
 
