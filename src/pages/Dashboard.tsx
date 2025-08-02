@@ -4,10 +4,7 @@ import { Link } from "react-router-dom";
 import { Home, Package, Bird, Pill, Users, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-
 const Dashboard = () => {
-  const { user } = useAuth();
   const [summaryData, setSummaryData] = useState({
     foodItems: 0,
     chickens: 0,
