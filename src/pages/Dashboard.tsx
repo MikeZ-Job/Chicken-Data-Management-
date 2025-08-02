@@ -97,7 +97,7 @@ const Dashboard = () => {
       <div className="p-6">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">
-            {getGreeting()}, {user?.username || 'User'}!
+            {getGreeting()}, Manager!
           </h1>
           <p className="text-muted-foreground">
             Overview of your chicken farm operations
