@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +23,6 @@ import {
 
 interface User {
   id: string;
-  username: string;
   email: string;
   role: string;
   permissions: string[];
@@ -39,8 +37,8 @@ interface SystemColor {
 const AdminPanel = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([
-    { id: "1", username: "admin", email: "admin@farm.local", role: "admin", permissions: ["all"] },
-    { id: "2", username: "manager", email: "manager@farm.local", role: "manager", permissions: ["view", "add"] },
+    { id: "1", email: "admin@farm.com", role: "admin", permissions: ["all"] },
+    { id: "2", email: "manager@farm.com", role: "manager", permissions: ["view", "add"] },
   ]);
   
   const [colors, setColors] = useState<SystemColor[]>([
@@ -54,7 +52,7 @@ const AdminPanel = () => {
     { name: "Muted Foreground", value: "215 16% 47%", cssVar: "--muted-foreground" },
   ]);
 
-  const [newUser, setNewUser] = useState({ username: "", password: "", role: "user", permissions: [] as string[] });
+  const [newUser, setNewUser] = useState({ email: "", role: "user", permissions: [] as string[] });
   const [selectedModule, setSelectedModule] = useState("medicine");
 
   const moduleStats = {
@@ -70,56 +68,30 @@ const AdminPanel = () => {
     }
   };
 
-  const addUser = async () => {
-    if (!newUser.username || !newUser.password) {
+  const addUser = () => {
+    if (!newUser.email) {
       toast({
         title: "Error",
-        description: "Username and password are required",
+        description: "Email is required",
         variant: "destructive",
       });
       return;
     }
 
-    try {
-      // Create user in Supabase auth
-      const email = `${newUser.username}@farm.local`;
-      const { error } = await supabase.auth.admin.createUser({
-        email,
-        password: newUser.password,
-        email_confirm: true
-      });
+    const user: User = {
+      id: Date.now().toString(),
+      email: newUser.email,
+      role: newUser.role,
+      permissions: newUser.permissions,
+    };
 
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      const user: User = {
-        id: Date.now().toString(),
-        username: newUser.username,
-        email,
-        role: newUser.role,
-        permissions: newUser.permissions,
-      };
-
-      setUsers([...users, user]);
-      setNewUser({ username: "", password: "", role: "user", permissions: [] });
-      
-      toast({
-        title: "Success",
-        description: "User added successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create user",
-        variant: "destructive",
-      });
-    }
+    setUsers([...users, user]);
+    setNewUser({ email: "", role: "user", permissions: [] });
+    
+    toast({
+      title: "Success",
+      description: "User added successfully",
+    });
   };
 
   const removeUser = (userId: string) => {
@@ -213,26 +185,15 @@ const AdminPanel = () => {
                 <CardTitle>Add New User</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="username">Username</Label>
+                    <Label htmlFor="userEmail">Email</Label>
                     <Input
-                      id="username"
-                      type="text"
-                      value={newUser.username}
-                      onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                      placeholder="Enter username"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                      placeholder="Enter password"
+                      id="userEmail"
+                      type="email"
+                      value={newUser.email}
+                      onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                      placeholder="user@farm.com"
                     />
                   </div>
                   
@@ -269,8 +230,7 @@ const AdminPanel = () => {
                   {users.map((user) => (
                     <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div>
-                        <p className="font-medium">{user.username}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium">{user.email}</p>
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="secondary">{user.role}</Badge>
                           {user.permissions.map((perm) => (
