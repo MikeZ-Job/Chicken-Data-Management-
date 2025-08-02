@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { 
   Users, 
+  Settings, 
   Palette, 
   Shield, 
   Monitor,
@@ -18,18 +19,15 @@ import {
   UtensilsCrossed,
   Eye,
   Plus,
-  Trash2,
-  UserCheck,
-  EyeOff
+  Trash2
 } from "lucide-react";
 
 interface User {
   id: string;
   username: string;
-  password: string;
+  email: string;
   role: string;
   permissions: string[];
-  created_at: string;
 }
 
 interface SystemColor {
@@ -40,9 +38,10 @@ interface SystemColor {
 
 const AdminPanel = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([]);
-  const [showPasswords, setShowPasswords] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([
+    { id: "1", username: "admin", email: "admin@farm.local", role: "admin", permissions: ["all"] },
+    { id: "2", username: "manager", email: "manager@farm.local", role: "manager", permissions: ["view", "add"] },
+  ]);
   
   const [colors, setColors] = useState<SystemColor[]>([
     { name: "Primary", value: "199 89% 48%", cssVar: "--primary" },
@@ -71,36 +70,6 @@ const AdminPanel = () => {
     }
   };
 
-  // Load users from database
-  useEffect(() => {
-    loadUsers();
-  }, []);
-
-  const loadUsers = async () => {
-    // For now, we'll simulate the data since the DB types aren't updated yet
-    // In production, this would load from the app_users table
-    const mockUsers: User[] = [
-      {
-        id: "1",
-        username: "admin",
-        password: "admin123",
-        role: "admin",
-        permissions: ["view", "add", "edit", "delete"],
-        created_at: new Date().toISOString()
-      },
-      {
-        id: "2", 
-        username: "manager",
-        password: "manager123",
-        role: "manager",
-        permissions: ["view", "add", "edit"],
-        created_at: new Date().toISOString()
-      }
-    ];
-    
-    setUsers(mockUsers);
-  };
-
   const addUser = async () => {
     if (!newUser.username || !newUser.password) {
       toast({
@@ -111,30 +80,33 @@ const AdminPanel = () => {
       return;
     }
 
-    // Check if username already exists
-    if (users.some(u => u.username === newUser.username)) {
-      toast({
-        title: "Error", 
-        description: "Username already exists",
-        variant: "destructive",
-      });
-      return;
-    }
-
     try {
-      setLoading(true);
-      
-      // Create new user
+      // Create user in Supabase auth
+      const email = `${newUser.username}@farm.local`;
+      const { error } = await supabase.auth.admin.createUser({
+        email,
+        password: newUser.password,
+        email_confirm: true
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       const user: User = {
         id: Date.now().toString(),
         username: newUser.username,
-        password: newUser.password,
+        email,
         role: newUser.role,
         permissions: newUser.permissions,
-        created_at: new Date().toISOString()
       };
 
-      setUsers([user, ...users]);
+      setUsers([...users, user]);
       setNewUser({ username: "", password: "", role: "user", permissions: [] });
       
       toast({
@@ -147,56 +119,15 @@ const AdminPanel = () => {
         description: "Failed to create user",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const removeUser = async (userId: string) => {
-    try {
-      setLoading(true);
-      
-      setUsers(users.filter(user => user.id !== userId));
-      toast({
-        title: "Success",
-        description: "User removed successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to remove user",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const resetPassword = async (userId: string, username: string) => {
-    const newPassword = `${username}123`;
-    
-    try {
-      setLoading(true);
-      
-      // Update the user's password in the local state
-      const updatedUsers = users.map(user => 
-        user.id === userId ? { ...user, password: newPassword } : user
-      );
-      setUsers(updatedUsers);
-      
-      toast({
-        title: "Success",
-        description: `Password reset to: ${newPassword}`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to reset password",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+  const removeUser = (userId: string) => {
+    setUsers(users.filter(user => user.id !== userId));
+    toast({
+      title: "Success",
+      description: "User removed successfully",
+    });
   };
 
   const hexToHsl = (hex: string) => {
@@ -291,7 +222,6 @@ const AdminPanel = () => {
                       value={newUser.username}
                       onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
                       placeholder="Enter username"
-                      disabled={loading}
                     />
                   </div>
                   
@@ -303,13 +233,12 @@ const AdminPanel = () => {
                       value={newUser.password}
                       onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                       placeholder="Enter password"
-                      disabled={loading}
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label>Role</Label>
-                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })} disabled={loading}>
+                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -322,7 +251,7 @@ const AdminPanel = () => {
                   </div>
                   
                   <div className="flex items-end">
-                    <Button onClick={addUser} className="w-full" disabled={loading}>
+                    <Button onClick={addUser} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       Add User
                     </Button>
@@ -333,74 +262,31 @@ const AdminPanel = () => {
 
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Existing Users ({users.length})</CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPasswords(!showPasswords)}
-                  >
-                    {showPasswords ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                    {showPasswords ? 'Hide' : 'Show'} Passwords
-                  </Button>
-                </div>
+                <CardTitle>Existing Users</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {loading ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">Loading users...</p>
-                    </div>
-                  ) : users.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground">No users found. Create your first user above.</p>
-                    </div>
-                  ) : (
-                    users.map((user) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-4">
-                            <div>
-                              <p className="font-medium text-lg">{user.username}</p>
-                              {showPasswords && (
-                                <p className="text-sm font-mono text-muted-foreground bg-muted px-2 py-1 rounded mt-1">
-                                  Password: {user.password}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary">{user.role}</Badge>
-                            {user.permissions && user.permissions.length > 0 && user.permissions.map((perm) => (
-                              <Badge key={perm} variant="outline">{perm}</Badge>
-                            ))}
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Created: {new Date(user.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => resetPassword(user.id, user.username)}
-                            disabled={loading}
-                          >
-                            <UserCheck className="h-4 w-4 mr-1" />
-                            Reset Password
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => removeUser(user.id)}
-                            disabled={loading}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                  {users.map((user) => (
+                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <p className="font-medium">{user.username}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="secondary">{user.role}</Badge>
+                          {user.permissions.map((perm) => (
+                            <Badge key={perm} variant="outline">{perm}</Badge>
+                          ))}
                         </div>
                       </div>
-                    ))
-                  )}
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeUser(user.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
@@ -421,7 +307,7 @@ const AdminPanel = () => {
                           <div className="flex justify-between items-center">
                             <span className="font-medium capitalize">{permission}</span>
                             <Badge variant="outline">
-                              {users.filter(u => u.permissions && u.permissions.includes(permission)).length} users
+                              {users.filter(u => u.permissions.includes(permission)).length} users
                             </Badge>
                           </div>
                         </div>

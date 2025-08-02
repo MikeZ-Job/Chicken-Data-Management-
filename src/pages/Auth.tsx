@@ -18,11 +18,14 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check if user is already logged in using localStorage
-    const currentUser = localStorage.getItem("currentUser");
-    if (currentUser) {
-      navigate("/");
-    }
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        navigate("/");
+      }
+    };
+    checkAuth();
   }, [navigate]);
 
   const handleForgotPassword = async (e: React.FormEvent) => {
@@ -51,28 +54,21 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      // Simple username/password authentication
-      const mockUsers = [
-        { username: "admin", password: "admin123", role: "admin" },
-        { username: "manager", password: "manager123", role: "manager" }
-      ];
+      // For demo purposes, use the username as email format for Supabase auth
+      const email = `${username}@farm.local`;
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const user = mockUsers.find(u => u.username === username && u.password === password);
-      
-      if (user) {
-        // Store user info in localStorage for simple auth
-        localStorage.setItem("currentUser", JSON.stringify(user));
-        toast({
-          title: "Success",
-          description: `Welcome back, ${user.username}!`,
-        });
-        navigate("/");
-      } else {
+      if (error) {
         toast({
           title: "Sign in failed",
           description: "Invalid username or password",
           variant: "destructive",
         });
+      } else {
+        navigate("/");
       }
     } catch (error) {
       toast({
