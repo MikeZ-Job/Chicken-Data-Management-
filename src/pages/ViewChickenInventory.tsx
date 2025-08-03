@@ -152,15 +152,22 @@ const ViewChickenInventory = () => {
           <div>
             <h1 className="text-3xl font-bold text-foreground">Chicken Inventory</h1>
             <p className="text-muted-foreground">
-              Total chickens: {filteredInventory.length}
+              Total chickens: {filteredInventory.length}. Click on a chicken to view weight tracking.
             </p>
           </div>
-          <Button asChild>
-            <Link to="/add-chicken-inventory">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Chicken
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link to="/bulk-weight-upload">
+                Bulk Weight Upload
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/add-chicken-inventory">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Chicken
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Card>

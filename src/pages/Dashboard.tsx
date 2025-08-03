@@ -179,6 +179,20 @@ const Dashboard = () => {
                 <FileText className="h-4 w-4 text-orange-600" />
                 <span>View processing records</span>
               </Link>
+              <Link 
+                to="/bulk-weight-upload" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <Bird className="h-4 w-4 text-blue-600" />
+                <span>Bulk weight upload</span>
+              </Link>
+              <Link 
+                to="/chicken-weight-tracking" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <Bird className="h-4 w-4 text-blue-600" />
+                <span>Track chicken weights</span>
+              </Link>
             </CardContent>
           </Card>
 
