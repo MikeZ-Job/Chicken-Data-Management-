@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          permissions: string[] | null
+          role: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       "Chicken Processing": {
         Row: {
           avg_weight_per_chicken: number | null
@@ -101,6 +131,38 @@ export type Database = {
             columns: ["farm_id"]
             isOneToOne: false
             referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chicken_weights: {
+        Row: {
+          chicken_id: number
+          created_at: string
+          date_recorded: string
+          id: number
+          weight_kg: number
+        }
+        Insert: {
+          chicken_id: number
+          created_at?: string
+          date_recorded: string
+          id?: number
+          weight_kg: number
+        }
+        Update: {
+          chicken_id?: number
+          created_at?: string
+          date_recorded?: string
+          id?: number
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chicken_weights_chicken_id_fkey"
+            columns: ["chicken_id"]
+            isOneToOne: false
+            referencedRelation: "chicken_inventory"
             referencedColumns: ["id"]
           },
         ]
@@ -201,6 +263,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      weight_standards: {
+        Row: {
+          age_in_days: number
+          created_at: string
+          expected_weight_kg: number
+          id: number
+        }
+        Insert: {
+          age_in_days: number
+          created_at?: string
+          expected_weight_kg: number
+          id?: number
+        }
+        Update: {
+          age_in_days?: number
+          created_at?: string
+          expected_weight_kg?: number
+          id?: number
+        }
+        Relationships: []
       }
       worker_food: {
         Row: {

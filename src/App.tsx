@@ -12,6 +12,8 @@ import AddFoodInventory from "./pages/AddFoodInventory";
 import ViewFoodInventory from "./pages/ViewFoodInventory";
 import AddChickenInventory from "./pages/AddChickenInventory";
 import ViewChickenInventory from "./pages/ViewChickenInventory";
+import BulkWeightUpload from "./pages/BulkWeightUpload";
+import ChickenWeightTracking from "./pages/ChickenWeightTracking";
 import AddMedicineInventory from "./pages/AddMedicineInventory";
 import ViewMedicineInventory from "./pages/ViewMedicineInventory";
 import AddWorkerFood from "./pages/AddWorkerFood";
@@ -85,6 +87,16 @@ const App = () => (
             <Route path="/view-chicken-inventory" element={
               <ProtectedRoute>
                 <ViewChickenInventory />
+              </ProtectedRoute>
+            } />
+            <Route path="/bulk-weight-upload" element={
+              <ProtectedRoute>
+                <BulkWeightUpload />
+              </ProtectedRoute>
+            } />
+            <Route path="/chicken-weight-tracking/:chickenId" element={
+              <ProtectedRoute>
+                <ChickenWeightTracking />
               </ProtectedRoute>
             } />
             <Route path="/add-medicine-inventory" element={

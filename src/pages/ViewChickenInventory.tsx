@@ -17,6 +17,7 @@ interface ChickenInventoryItem {
   age: number;
   health_status: string;
   date_added: string;
+  age_in_days?: number;
 }
 
 const ViewChickenInventory = () => {
@@ -48,7 +49,13 @@ const ViewChickenInventory = () => {
 
       if (error) throw error;
 
-      setInventory(data || []);
+      // Calculate age in days for each chicken
+      const inventoryWithAges = (data || []).map(item => ({
+        ...item,
+        age_in_days: Math.floor((new Date().getTime() - new Date(item.date_added).getTime()) / (1000 * 60 * 60 * 24))
+      }));
+
+      setInventory(inventoryWithAges);
     } catch (error) {
       console.error("Error fetching chicken inventory:", error);
       toast({
@@ -243,23 +250,29 @@ const ViewChickenInventory = () => {
             ) : (
               <div className="rounded-md border">
                 <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Breed</TableHead>
-                      <TableHead>Age (weeks)</TableHead>
-                      <TableHead>Health Status</TableHead>
-                      <TableHead>Date Added</TableHead>
-                    </TableRow>
-                  </TableHeader>
+                   <TableHeader>
+                     <TableRow>
+                       <TableHead>Breed</TableHead>
+                       <TableHead>Age (weeks)</TableHead>
+                       <TableHead>Age (days)</TableHead>
+                       <TableHead>Health Status</TableHead>
+                       <TableHead>Date Added</TableHead>
+                     </TableRow>
+                   </TableHeader>
                   <TableBody>
-                    {filteredInventory.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.breed}</TableCell>
-                        <TableCell>{item.age}</TableCell>
-                        <TableCell>{item.health_status}</TableCell>
-                        <TableCell>{formatDate(item.date_added)}</TableCell>
-                      </TableRow>
-                    ))}
+                     {filteredInventory.map((item) => (
+                       <TableRow 
+                         key={item.id}
+                         className="cursor-pointer hover:bg-muted/50"
+                         onClick={() => window.location.href = `/chicken-weight-tracking/${item.id}`}
+                       >
+                         <TableCell className="font-medium">{item.breed}</TableCell>
+                         <TableCell>{item.age}</TableCell>
+                         <TableCell className="font-medium text-primary">{item.age_in_days}</TableCell>
+                         <TableCell>{item.health_status}</TableCell>
+                         <TableCell>{formatDate(item.date_added)}</TableCell>
+                       </TableRow>
+                     ))}
                   </TableBody>
                 </Table>
               </div>
