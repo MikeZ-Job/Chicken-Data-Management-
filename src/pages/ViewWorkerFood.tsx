@@ -41,10 +41,16 @@ const ViewWorkerFood = () => {
   }, [workerFoodRecords, searchTerm, filterType, sortBy, sortOrder]);
 
   const fetchWorkerFoodRecords = async () => {
+    if (!selectedFarm) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("worker_food")
-        .select("*");
+        .select("*")
+        .eq("farm_id", selectedFarm.id);
 
       if (error) throw error;
 

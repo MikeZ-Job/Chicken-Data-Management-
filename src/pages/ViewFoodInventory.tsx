@@ -39,10 +39,16 @@ const ViewFoodInventory = () => {
   }, [inventory, searchTerm, sortBy, sortOrder, foodTypeFilter]);
 
   const fetchInventory = async () => {
+    if (!selectedFarm) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("food_inventory")
         .select("*")
+        .eq("farm_id", selectedFarm.id)
         .order("date_received", { ascending: false });
 
       if (error) throw error;

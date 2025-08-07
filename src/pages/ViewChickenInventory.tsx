@@ -41,10 +41,16 @@ const ViewChickenInventory = () => {
   }, [inventory, searchTerm, sortBy, sortOrder, breedFilter, healthStatusFilter]);
 
   const fetchInventory = async () => {
+    if (!selectedFarm) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("chicken_inventory")
         .select("*")
+        .eq("farm_id", selectedFarm.id)
         .order("date_added", { ascending: false });
 
       if (error) throw error;
