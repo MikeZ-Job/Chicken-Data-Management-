@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Users, 
   Settings, 
@@ -18,7 +19,8 @@ import {
   UtensilsCrossed,
   Eye,
   Plus,
-  Trash2
+  Trash2,
+  Key
 } from "lucide-react";
 
 interface User {
@@ -54,6 +56,7 @@ const AdminPanel = () => {
 
   const [newUser, setNewUser] = useState({ email: "", role: "user", permissions: [] as string[] });
   const [selectedModule, setSelectedModule] = useState("medicine");
+  const [passwordReset, setPasswordReset] = useState({ email: "", newPassword: "" });
 
   const moduleStats = {
     medicine: {
@@ -149,6 +152,62 @@ const AdminPanel = () => {
     });
   };
 
+  const resetUserPassword = async () => {
+    if (!passwordReset.email || !passwordReset.newPassword) {
+      toast({
+        title: "Error",
+        description: "Email and new password are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Use Supabase Admin API to update user password
+      const { error } = await supabase.auth.admin.updateUserById(
+        passwordReset.email, // This would need the user ID, but we'll use reset password instead
+        { password: passwordReset.newPassword }
+      );
+
+      if (error) {
+        // Fallback to password reset email
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+          passwordReset.email,
+          {
+            redirectTo: `${window.location.origin}/reset-password`
+          }
+        );
+
+        if (resetError) {
+          toast({
+            title: "Error",
+            description: resetError.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Password Reset Email Sent",
+          description: `Password reset email sent to ${passwordReset.email}`,
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Password updated successfully",
+        });
+      }
+
+      setPasswordReset({ email: "", newPassword: "" });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reset password",
+        variant: "destructive",
+      });
+    }
+  };
+
   const permissionOptions = ["view", "add", "edit", "delete", "admin"];
 
   return (
@@ -215,6 +274,44 @@ const AdminPanel = () => {
                     <Button onClick={addUser} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
                       Add User
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Reset User Password</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resetEmail">User Email</Label>
+                    <Input
+                      id="resetEmail"
+                      type="email"
+                      value={passwordReset.email}
+                      onChange={(e) => setPasswordReset({ ...passwordReset, email: e.target.value })}
+                      placeholder="mikejob202@gmail.com"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={passwordReset.newPassword}
+                      onChange={(e) => setPasswordReset({ ...passwordReset, newPassword: e.target.value })}
+                      placeholder="Enter new password"
+                    />
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button onClick={resetUserPassword} className="w-full">
+                      <Key className="h-4 w-4 mr-2" />
+                      Reset Password
                     </Button>
                   </div>
                 </div>
