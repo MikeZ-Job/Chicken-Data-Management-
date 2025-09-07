@@ -16,27 +16,38 @@ export type Database = {
     Tables: {
       app_users: {
         Row: {
+          assigned_farm_id: string | null
           created_at: string
           id: string
           permissions: string[] | null
-          role: string
+          role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
         Insert: {
+          assigned_farm_id?: string | null
           created_at?: string
           id?: string
           permissions?: string[] | null
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
         Update: {
+          assigned_farm_id?: string | null
           created_at?: string
           id?: string
           permissions?: string[] | null
-          role?: string
+          role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "app_users_assigned_farm_id_fkey"
+            columns: ["assigned_farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       "Chicken Processing": {
         Row: {
@@ -323,9 +334,17 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_farm_manager: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_staff: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "farm_manager" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -452,6 +471,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "farm_manager", "staff"],
+    },
   },
 } as const
