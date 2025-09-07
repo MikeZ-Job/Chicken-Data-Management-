@@ -39,10 +39,16 @@ const ViewMedicineInventory = () => {
   }, [medicines, searchTerm, filterType, sortBy, sortOrder]);
 
   const fetchMedicines = async () => {
+    if (!selectedFarm) {
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("medicine_inventory")
-        .select("*");
+        .select("*")
+        .eq("farm_id", selectedFarm.id);
 
       if (error) throw error;
 

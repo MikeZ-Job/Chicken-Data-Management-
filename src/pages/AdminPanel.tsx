@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { usePermissions } from "@/hooks/usePermissions";
 import { 
   Users, 
   Settings, 
@@ -18,58 +20,149 @@ import {
   UtensilsCrossed,
   Eye,
   Plus,
-  Trash2
+  Trash2,
+  Key,
+  Building
 } from "lucide-react";
 
 interface User {
   id: string;
-  email: string;
-  role: string;
+  role: 'admin' | 'farm_manager' | 'staff';
   permissions: string[];
+  assigned_farm_id?: string;
+  created_at: string;
 }
 
-interface SystemColor {
-  name: string;
-  value: string;
-  cssVar: string;
+interface Farm {
+  id: string;
+  farm_name: string;
+  location: string;
+  owner: string;
 }
 
 const AdminPanel = () => {
   const { toast } = useToast();
-  const [users, setUsers] = useState<User[]>([
-    { id: "1", email: "admin@farm.com", role: "admin", permissions: ["all"] },
-    { id: "2", email: "manager@farm.com", role: "manager", permissions: ["view", "add"] },
-  ]);
-  
-  const [colors, setColors] = useState<SystemColor[]>([
-    { name: "Primary", value: "199 89% 48%", cssVar: "--primary" },
-    { name: "Secondary", value: "210 40% 98%", cssVar: "--secondary" },
-    { name: "Background", value: "0 0% 100%", cssVar: "--background" },
-    { name: "Foreground", value: "222 84% 5%", cssVar: "--foreground" },
-    { name: "Card", value: "0 0% 100%", cssVar: "--card" },
-    { name: "Card Foreground", value: "222 84% 5%", cssVar: "--card-foreground" },
-    { name: "Muted", value: "210 40% 96%", cssVar: "--muted" },
-    { name: "Muted Foreground", value: "215 16% 47%", cssVar: "--muted-foreground" },
-  ]);
+  const { isAdmin } = usePermissions();
+  const [users, setUsers] = useState<User[]>([]);
+  const [farms, setFarms] = useState<Farm[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newUser, setNewUser] = useState<{
+    email: string;
+    role: 'admin' | 'farm_manager' | 'staff';
+    assignedFarmId: string;
+  }>({ 
+    email: "", 
+    role: "staff", 
+    assignedFarmId: "" 
+  });
+  const [passwordReset, setPasswordReset] = useState({ email: "", newPassword: "" });
 
-  const [newUser, setNewUser] = useState({ email: "", role: "user", permissions: [] as string[] });
-  const [selectedModule, setSelectedModule] = useState("medicine");
+  // Load users and farms data
+  useEffect(() => {
+    if (isAdmin()) {
+      loadUsersAndFarms();
+    }
+  }, [isAdmin]);
 
-  const moduleStats = {
-    medicine: {
-      adds: 45,
-      views: 120,
-      lastActivity: "2 hours ago"
-    },
-    workerFood: {
-      adds: 23,
-      views: 67,
-      lastActivity: "30 minutes ago"
+  const loadUsersAndFarms = async () => {
+    try {
+      // Load users
+      const { data: usersData, error: usersError } = await supabase
+        .from('app_users')
+        .select(`
+          id,
+          role,
+          permissions,
+          assigned_farm_id,
+          created_at
+        `);
+
+      if (usersError) throw usersError;
+
+      // Load farms
+      const { data: farmsData, error: farmsError } = await supabase
+        .from('farms')
+        .select('id, farm_name, location, owner');
+
+      if (farmsError) throw farmsError;
+
+      setUsers(usersData || []);
+      setFarms(farmsData || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load data",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addUser = () => {
-    if (!newUser.email) {
+  const getPermissionsForRole = (role: string): string[] => {
+    switch (role) {
+      case 'admin':
+        return ['full_access', 'user_management', 'farm_management', 'view_all_farms'];
+      case 'farm_manager':
+        return ['manage_assigned_farm', 'view_reports', 'manage_staff'];
+      case 'staff':
+        return ['record_weights', 'record_food', 'view_assigned_data'];
+      default:
+        return [];
+    }
+  };
+
+  const addUser = async () => {
+    if (!newUser.email || !newUser.role) {
+      toast({
+        title: "Error",
+        description: "Email and role are required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Create auth user first
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: newUser.email,
+        password: 'TempPassword123!', // User will need to reset this
+        email_confirm: true
+      });
+
+      if (error) throw error;
+
+      // Update the app_users record with role and permissions
+      const permissions = getPermissionsForRole(newUser.role);
+      const { error: updateError } = await supabase
+        .from('app_users')
+        .update({
+          role: newUser.role,
+          permissions: permissions,
+          assigned_farm_id: newUser.assignedFarmId || null
+        })
+        .eq('id', data.user.id);
+
+      if (updateError) throw updateError;
+
+      await loadUsersAndFarms();
+      setNewUser({ email: "", role: "staff", assignedFarmId: "" });
+      
+      toast({
+        title: "Success",
+        description: "User added successfully. They will need to reset their password.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resetUserPassword = async () => {
+    if (!passwordReset.email) {
       toast({
         title: "Error",
         description: "Email is required",
@@ -78,104 +171,64 @@ const AdminPanel = () => {
       return;
     }
 
-    const user: User = {
-      id: Date.now().toString(),
-      email: newUser.email,
-      role: newUser.role,
-      permissions: newUser.permissions,
-    };
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        passwordReset.email,
+        {
+          redirectTo: `${window.location.origin}/auth`
+        }
+      );
 
-    setUsers([...users, user]);
-    setNewUser({ email: "", role: "user", permissions: [] });
-    
-    toast({
-      title: "Success",
-      description: "User added successfully",
-    });
-  };
+      if (error) throw error;
 
-  const removeUser = (userId: string) => {
-    setUsers(users.filter(user => user.id !== userId));
-    toast({
-      title: "Success",
-      description: "User removed successfully",
-    });
-  };
+      toast({
+        title: "Password Reset Email Sent",
+        description: `Password reset email sent to ${passwordReset.email}`,
+      });
 
-  const hexToHsl = (hex: string) => {
-    const r = parseInt(hex.slice(1, 3), 16) / 255;
-    const g = parseInt(hex.slice(3, 5), 16) / 255;
-    const b = parseInt(hex.slice(5, 7), 16) / 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h /= 6;
+      setPasswordReset({ email: "", newPassword: "" });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email",
+        variant: "destructive",
+      });
     }
-
-    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
   };
 
-  const updateColor = (index: number, newValue: string) => {
-    const updatedColors = [...colors];
-    
-    // Convert hex to HSL if it's a hex color
-    if (newValue.startsWith('#')) {
-      updatedColors[index].value = hexToHsl(newValue);
-    } else {
-      updatedColors[index].value = newValue;
-    }
-    
-    setColors(updatedColors);
-    
-    // Apply the color change to CSS variables
-    document.documentElement.style.setProperty(
-      updatedColors[index].cssVar,
-      updatedColors[index].value
+  if (!isAdmin()) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+              <p className="text-muted-foreground">Only administrators can access this panel.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </Layout>
     );
-    
-    toast({
-      title: "Success",
-      description: "Color updated successfully",
-    });
-  };
-
-  const permissionOptions = ["view", "add", "edit", "delete", "admin"];
+  }
 
   return (
     <Layout>
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Admin Panel</h1>
-          <p className="text-muted-foreground">Manage users, permissions, and system settings</p>
+          <p className="text-muted-foreground">Manage users, roles, and permissions</p>
         </div>
 
         <Tabs defaultValue="users" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              Users
+              User Management
             </TabsTrigger>
-            <TabsTrigger value="permissions" className="flex items-center gap-2">
+            <TabsTrigger value="roles" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
-              Permissions
-            </TabsTrigger>
-            <TabsTrigger value="colors" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Colors
-            </TabsTrigger>
-            <TabsTrigger value="monitoring" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              Monitoring
+              Roles & Permissions
             </TabsTrigger>
           </TabsList>
 
@@ -185,7 +238,7 @@ const AdminPanel = () => {
                 <CardTitle>Add New User</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="userEmail">Email</Label>
                     <Input
@@ -199,17 +252,43 @@ const AdminPanel = () => {
                   
                   <div className="space-y-2">
                     <Label>Role</Label>
-                    <Select value={newUser.role} onValueChange={(value) => setNewUser({ ...newUser, role: value })}>
+                    <Select
+                      value={newUser.role}
+                      onValueChange={(value) => 
+                        setNewUser({ ...newUser, role: value as 'admin' | 'farm_manager' | 'staff' })
+                      }
+                    >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="admin">Admin - Full access to all farms and settings</SelectItem>
+                        <SelectItem value="farm_manager">Farm Manager - Manage assigned farm</SelectItem>
+                        <SelectItem value="staff">Staff - Record data and view assigned farm</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {newUser.role === 'farm_manager' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="assignedFarm">Assigned Farm</Label>
+                      <Select
+                        value={newUser.assignedFarmId}
+                        onValueChange={(value) => setNewUser({ ...newUser, assignedFarmId: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select farm to assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {farms.map((farm) => (
+                            <SelectItem key={farm.id} value={farm.id}>
+                              {farm.farm_name} - {farm.location}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                   
                   <div className="flex items-end">
                     <Button onClick={addUser} className="w-full">
@@ -223,187 +302,211 @@ const AdminPanel = () => {
 
             <Card>
               <CardHeader>
+                <CardTitle>Reset User Password</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="resetEmail">User Email</Label>
+                    <Input
+                      id="resetEmail"
+                      type="email"
+                      value={passwordReset.email}
+                      onChange={(e) => setPasswordReset({ ...passwordReset, email: e.target.value })}
+                      placeholder="user@example.com"
+                    />
+                  </div>
+                  
+                  <div className="flex items-end">
+                    <Button onClick={resetUserPassword} className="w-full">
+                      <Key className="h-4 w-4 mr-2" />
+                      Send Reset Email
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
                 <CardTitle>Existing Users</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {users.map((user) => (
-                    <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div>
-                        <p className="font-medium">{user.email}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="secondary">{user.role}</Badge>
-                          {user.permissions.map((perm) => (
-                            <Badge key={perm} variant="outline">{perm}</Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeUser(user.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+                {loading ? (
+                  <div className="text-center py-4">Loading users...</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse border border-border">
+                      <thead>
+                        <tr className="bg-muted">
+                          <th className="border border-border p-2 text-left">User ID</th>
+                          <th className="border border-border p-2 text-left">Role</th>
+                          <th className="border border-border p-2 text-left">Assigned Farm</th>
+                          <th className="border border-border p-2 text-left">Permissions</th>
+                          <th className="border border-border p-2 text-left">Created</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {users.map((user) => {
+                          const assignedFarm = farms.find(f => f.id === user.assigned_farm_id);
+                          return (
+                            <tr key={user.id}>
+                              <td className="border border-border p-2 font-mono text-xs">
+                                {user.id.slice(0, 8)}...
+                              </td>
+                              <td className="border border-border p-2">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                                  user.role === 'farm_manager' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {user.role.replace('_', ' ').toUpperCase()}
+                                </span>
+                              </td>
+                              <td className="border border-border p-2">
+                                {assignedFarm ? (
+                                  <div className="text-sm">
+                                    <div className="font-medium">{assignedFarm.farm_name}</div>
+                                    <div className="text-muted-foreground">{assignedFarm.location}</div>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </td>
+                              <td className="border border-border p-2">
+                                <div className="flex flex-wrap gap-1">
+                                  {user.permissions.slice(0, 2).map((perm) => (
+                                    <Badge key={perm} variant="outline" className="text-xs">
+                                      {perm.replace('_', ' ')}
+                                    </Badge>
+                                  ))}
+                                  {user.permissions.length > 2 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{user.permissions.length - 2} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="border border-border p-2 text-sm">
+                                {new Date(user.created_at).toLocaleDateString()}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
-          <TabsContent value="permissions" className="space-y-6">
+          <TabsContent value="roles" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5 text-red-500" />
+                    Admin
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Full access to all farms, settings, and user management
+                  </p>
+                  <div className="space-y-2">
+                    <Badge className="w-full justify-start">Full Access</Badge>
+                    <Badge className="w-full justify-start">User Management</Badge>
+                    <Badge className="w-full justify-start">Farm Management</Badge>
+                    <Badge className="w-full justify-start">View All Farms</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-5 w-5 text-blue-500" />
+                    Farm Manager
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Can view and manage only their assigned farm's data
+                  </p>
+                  <div className="space-y-2">
+                    <Badge variant="secondary" className="w-full justify-start">Manage Assigned Farm</Badge>
+                    <Badge variant="secondary" className="w-full justify-start">View Reports</Badge>
+                    <Badge variant="secondary" className="w-full justify-start">Manage Staff</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5 text-green-500" />
+                    Staff
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Can only record and view chicken weights, food usage, and production data
+                  </p>
+                  <div className="space-y-2">
+                    <Badge variant="outline" className="w-full justify-start">Record Weights</Badge>
+                    <Badge variant="outline" className="w-full justify-start">Record Food Usage</Badge>
+                    <Badge variant="outline" className="w-full justify-start">View Assigned Data</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
             <Card>
               <CardHeader>
-                <CardTitle>Permission Management</CardTitle>
+                <CardTitle>Permission Summary</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium mb-4">Available Permissions</h4>
+                    <h4 className="font-medium mb-4">User Role Distribution</h4>
                     <div className="space-y-2">
-                      {permissionOptions.map((permission) => (
-                        <div key={permission} className="p-3 border rounded-lg">
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium capitalize">{permission}</span>
-                            <Badge variant="outline">
-                              {users.filter(u => u.permissions.includes(permission)).length} users
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
+                      <div className="flex justify-between p-2 bg-muted rounded">
+                        <span>Admins</span>
+                        <Badge variant="destructive">
+                          {users.filter(u => u.role === 'admin').length}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted rounded">
+                        <span>Farm Managers</span>
+                        <Badge>
+                          {users.filter(u => u.role === 'farm_manager').length}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted rounded">
+                        <span>Staff</span>
+                        <Badge variant="secondary">
+                          {users.filter(u => u.role === 'staff').length}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-4">Module Access Control</h4>
-                    <div className="space-y-3">
-                      <div className="p-3 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Pill className="h-4 w-4" />
-                          <span className="font-medium">Medicine Inventory</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Control access to medicine management</p>
-                      </div>
-                      
-                      <div className="p-3 border rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <UtensilsCrossed className="h-4 w-4" />
-                          <span className="font-medium">Worker Food</span>
-                        </div>
-                        <p className="text-sm text-muted-foreground">Control access to worker food management</p>
-                      </div>
+                    <h4 className="font-medium mb-4">Farm Assignments</h4>
+                    <div className="space-y-2">
+                      {farms.map((farm) => {
+                        const assignedUsers = users.filter(u => u.assigned_farm_id === farm.id);
+                        return (
+                          <div key={farm.id} className="flex justify-between p-2 bg-muted rounded">
+                            <span className="text-sm">{farm.farm_name}</span>
+                            <Badge variant="outline">
+                              {assignedUsers.length} assigned
+                            </Badge>
+                          </div>
+                        );
+                      })}
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="colors" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>System Color Customization</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {colors.map((color, index) => (
-                    <div key={color.name} className="space-y-2">
-                      <Label>{color.name}</Label>
-                      <div className="flex items-center gap-3">
-                        <Input
-                          type="color"
-                          value={`#${color.value.split(' ').map(v => {
-                            const num = parseInt(v.replace('%', ''));
-                            return Math.round(num * 255 / 100).toString(16).padStart(2, '0');
-                          }).join('')}`}
-                          onChange={(e) => updateColor(index, e.target.value)}
-                          className="w-16 h-10 p-1 border rounded"
-                        />
-                        <Input
-                          type="text"
-                          value={color.value}
-                          onChange={(e) => updateColor(index, e.target.value)}
-                          className="flex-1"
-                          placeholder="H S% L% (e.g., 199 89% 48%)"
-                        />
-                        <div 
-                          className="w-10 h-10 rounded border"
-                          style={{ backgroundColor: `hsl(${color.value})` }}
-                        />
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        CSS Variable: {color.cssVar}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 p-4 bg-muted rounded-lg">
-                  <p className="text-sm text-muted-foreground">
-                    Changes are applied immediately. Colors are stored in CSS variables for consistent theming.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="monitoring" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Module Activity Monitoring</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Select Module to Monitor</Label>
-                    <Select value={selectedModule} onValueChange={setSelectedModule}>
-                      <SelectTrigger className="w-full md:w-[300px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="medicine">Medicine Inventory</SelectItem>
-                        <SelectItem value="workerFood">Worker Food</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Plus className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Add Operations</p>
-                            <p className="text-2xl font-bold">{moduleStats[selectedModule as keyof typeof moduleStats].adds}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Eye className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">View Operations</p>
-                            <p className="text-2xl font-bold">{moduleStats[selectedModule as keyof typeof moduleStats].views}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-2">
-                          <Monitor className="h-5 w-5 text-primary" />
-                          <div>
-                            <p className="text-sm text-muted-foreground">Last Activity</p>
-                            <p className="text-lg font-medium">{moduleStats[selectedModule as keyof typeof moduleStats].lastActivity}</p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
                   </div>
                 </div>
               </CardContent>

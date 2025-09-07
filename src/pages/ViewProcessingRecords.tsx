@@ -46,10 +46,16 @@ export default function ViewProcessingRecords() {
   }, [records, searchTerm, dateFilter, stackFilter, sortBy, sortOrder]);
 
   const fetchRecords = async () => {
+    if (!selectedFarm) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("Chicken Processing")
         .select("*")
+        .eq("farm_id", selectedFarm.id)
         .order("Processing_date", { ascending: false });
 
       if (error) {

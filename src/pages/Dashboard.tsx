@@ -5,9 +5,11 @@ import { Home, Package, Bird, Pill, Users, FileText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useFarm } from "@/contexts/FarmContext";
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { selectedFarm } = useFarm();
   const [summaryData, setSummaryData] = useState({
     foodItems: 0,
     chickens: 0,
@@ -28,13 +30,18 @@ const Dashboard = () => {
   // Fetch real data from Supabase
   useEffect(() => {
     const fetchData = async () => {
+      if (!selectedFarm) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const [foodResult, chickenResult, medicineResult, workerFoodResult, processingResult] = await Promise.all([
-          supabase.from('food_inventory').select('id', { count: 'exact' }),
-          supabase.from('chicken_inventory').select('id', { count: 'exact' }),
-          supabase.from('medicine_inventory').select('id', { count: 'exact' }),
-          supabase.from('worker_food').select('id', { count: 'exact' }),
-          supabase.from('Chicken Processing').select('id', { count: 'exact' })
+          supabase.from('food_inventory').select('id', { count: 'exact' }).eq('farm_id', selectedFarm.id),
+          supabase.from('chicken_inventory').select('id', { count: 'exact' }).eq('farm_id', selectedFarm.id),
+          supabase.from('medicine_inventory').select('id', { count: 'exact' }).eq('farm_id', selectedFarm.id),
+          supabase.from('worker_food').select('id', { count: 'exact' }).eq('farm_id', selectedFarm.id),
+          supabase.from('Chicken Processing').select('id', { count: 'exact' }).eq('farm_id', selectedFarm.id)
         ]);
 
         setSummaryData({
@@ -52,7 +59,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedFarm]);
 
   const summaryCards = [
     {
@@ -178,6 +185,20 @@ const Dashboard = () => {
               >
                 <FileText className="h-4 w-4 text-orange-600" />
                 <span>View processing records</span>
+              </Link>
+              <Link 
+                to="/bulk-weight-upload" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <Bird className="h-4 w-4 text-blue-600" />
+                <span>Bulk weight upload</span>
+              </Link>
+              <Link 
+                to="/chicken-weight-tracking" 
+                className="flex items-center gap-2 text-sm hover:bg-muted p-2 rounded-md transition-colors"
+              >
+                <Bird className="h-4 w-4 text-blue-600" />
+                <span>Track chicken weights</span>
               </Link>
             </CardContent>
           </Card>

@@ -7,13 +7,48 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
   public: {
     Tables: {
+      app_users: {
+        Row: {
+          assigned_farm_id: string | null
+          created_at: string
+          id: string
+          permissions: string[] | null
+          role: Database["public"]["Enums"]["user_role"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_farm_id?: string | null
+          created_at?: string
+          id?: string
+          permissions?: string[] | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_farm_id?: string | null
+          created_at?: string
+          id?: string
+          permissions?: string[] | null
+          role?: Database["public"]["Enums"]["user_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_users_assigned_farm_id_fkey"
+            columns: ["assigned_farm_id"]
+            isOneToOne: false
+            referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       "Chicken Processing": {
         Row: {
           avg_weight_per_chicken: number | null
@@ -101,6 +136,38 @@ export type Database = {
             columns: ["farm_id"]
             isOneToOne: false
             referencedRelation: "farms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chicken_weights: {
+        Row: {
+          chicken_id: number
+          created_at: string
+          date_recorded: string
+          id: number
+          weight_kg: number
+        }
+        Insert: {
+          chicken_id: number
+          created_at?: string
+          date_recorded: string
+          id?: number
+          weight_kg: number
+        }
+        Update: {
+          chicken_id?: number
+          created_at?: string
+          date_recorded?: string
+          id?: number
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chicken_weights_chicken_id_fkey"
+            columns: ["chicken_id"]
+            isOneToOne: false
+            referencedRelation: "chicken_inventory"
             referencedColumns: ["id"]
           },
         ]
@@ -202,6 +269,27 @@ export type Database = {
           },
         ]
       }
+      weight_standards: {
+        Row: {
+          age_in_days: number
+          created_at: string
+          expected_weight_kg: number
+          id: number
+        }
+        Insert: {
+          age_in_days: number
+          created_at?: string
+          expected_weight_kg: number
+          id?: number
+        }
+        Update: {
+          age_in_days?: number
+          created_at?: string
+          expected_weight_kg?: number
+          id?: number
+        }
+        Relationships: []
+      }
       worker_food: {
         Row: {
           date_provided: string | null
@@ -242,10 +330,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_farm_manager: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_staff: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "admin" | "farm_manager" | "staff"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -372,6 +471,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["admin", "farm_manager", "staff"],
+    },
   },
 } as const

@@ -97,7 +97,7 @@ const sidebarGroups = [
 
 export const Layout = ({ children, showBackButton = false }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set([0, 6])); // Default: Farm Management and Admin Panel always expanded
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set()); // All sections collapsed by default
   const location = useLocation();
   const navigate = useNavigate();
   const { signOut, user } = useAuth();
