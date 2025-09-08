@@ -123,34 +123,23 @@ const AdminPanel = () => {
     }
 
     try {
-      // Create auth user first
-      const { data, error } = await supabase.auth.admin.createUser({
-        email: newUser.email,
-        password: 'TempPassword123!', // User will need to reset this
-        email_confirm: true
+      // Call edge function to create user without email verification
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: newUser.email,
+          role: newUser.role,
+          assignedFarmId: newUser.assignedFarmId || null,
+        },
       });
 
       if (error) throw error;
-
-      // Update the app_users record with role and permissions
-      const permissions = getPermissionsForRole(newUser.role);
-      const { error: updateError } = await supabase
-        .from('app_users')
-        .update({
-          role: newUser.role,
-          permissions: permissions,
-          assigned_farm_id: newUser.assignedFarmId || null
-        })
-        .eq('id', data.user.id);
-
-      if (updateError) throw updateError;
 
       await loadUsersAndFarms();
       setNewUser({ email: "", role: "staff", assignedFarmId: "" });
       
       toast({
         title: "Success",
-        description: "User added successfully. They will need to reset their password.",
+        description: "User added successfully with temporary password 'TempPassword123!' - they should change it on first login.",
       });
     } catch (error: any) {
       toast({
