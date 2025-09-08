@@ -161,6 +161,62 @@ const AdminPanel = () => {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    if (!confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      // Delete from auth.users (this will cascade to app_users)
+      const { error } = await supabase.auth.admin.deleteUser(userId);
+
+      if (error) throw error;
+
+      await loadUsersAndFarms();
+      
+      toast({
+        title: "Success",
+        description: "User deleted successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete user",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const updateUserPermissions = async (userId: string, newRole: 'admin' | 'farm_manager' | 'staff', newFarmId?: string) => {
+    try {
+      const permissions = getPermissionsForRole(newRole);
+      const { error } = await supabase
+        .from('app_users')
+        .update({
+          role: newRole,
+          permissions: permissions,
+          assigned_farm_id: newFarmId || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+
+      await loadUsersAndFarms();
+      
+      toast({
+        title: "Success",
+        description: "User permissions updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update user permissions",
+        variant: "destructive",
+      });
+    }
+  };
+
   const resetUserPassword = async () => {
     if (!passwordReset.email) {
       toast({
@@ -336,65 +392,110 @@ const AdminPanel = () => {
                   <div className="text-center py-4">Loading users...</div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse border border-border">
-                      <thead>
-                        <tr className="bg-muted">
-                          <th className="border border-border p-2 text-left">User ID</th>
-                          <th className="border border-border p-2 text-left">Role</th>
-                          <th className="border border-border p-2 text-left">Assigned Farm</th>
-                          <th className="border border-border p-2 text-left">Permissions</th>
-                          <th className="border border-border p-2 text-left">Created</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user) => {
-                          const assignedFarm = farms.find(f => f.id === user.assigned_farm_id);
-                          return (
-                            <tr key={user.id}>
-                              <td className="border border-border p-2 font-mono text-xs">
-                                {user.id.slice(0, 8)}...
-                              </td>
-                              <td className="border border-border p-2">
-                                <span className={`px-2 py-1 rounded text-xs ${
-                                  user.role === 'admin' ? 'bg-red-100 text-red-800' :
-                                  user.role === 'farm_manager' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-green-100 text-green-800'
-                                }`}>
-                                  {user.role.replace('_', ' ').toUpperCase()}
-                                </span>
-                              </td>
-                              <td className="border border-border p-2">
-                                {assignedFarm ? (
-                                  <div className="text-sm">
-                                    <div className="font-medium">{assignedFarm.farm_name}</div>
-                                    <div className="text-muted-foreground">{assignedFarm.location}</div>
-                                  </div>
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </td>
-                              <td className="border border-border p-2">
-                                <div className="flex flex-wrap gap-1">
-                                  {user.permissions.slice(0, 2).map((perm) => (
-                                    <Badge key={perm} variant="outline" className="text-xs">
-                                      {perm.replace('_', ' ')}
-                                    </Badge>
-                                  ))}
-                                  {user.permissions.length > 2 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{user.permissions.length - 2} more
-                                    </Badge>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="border border-border p-2 text-sm">
-                                {new Date(user.created_at).toLocaleDateString()}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                     <table className="w-full border-collapse border border-border">
+                       <thead>
+                         <tr className="bg-muted">
+                           <th className="border border-border p-2 text-left">User ID</th>
+                           <th className="border border-border p-2 text-left">Role</th>
+                           <th className="border border-border p-2 text-left">Assigned Farm</th>
+                           <th className="border border-border p-2 text-left">Permissions</th>
+                           <th className="border border-border p-2 text-left">Created</th>
+                           <th className="border border-border p-2 text-left">Actions</th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                         {users.map((user) => {
+                           const assignedFarm = farms.find(f => f.id === user.assigned_farm_id);
+                           return (
+                             <tr key={user.id}>
+                               <td className="border border-border p-2 font-mono text-xs">
+                                 {user.id.slice(0, 8)}...
+                               </td>
+                               <td className="border border-border p-2">
+                                 <Select
+                                   value={user.role}
+                                   onValueChange={(newRole: 'admin' | 'farm_manager' | 'staff') => updateUserPermissions(user.id, newRole, user.assigned_farm_id)}
+                                 >
+                                   <SelectTrigger className="w-auto">
+                                     <SelectValue>
+                                       <span className={`px-2 py-1 rounded text-xs ${
+                                         user.role === 'admin' ? 'bg-red-100 text-red-800' :
+                                         user.role === 'farm_manager' ? 'bg-blue-100 text-blue-800' :
+                                         'bg-green-100 text-green-800'
+                                       }`}>
+                                         {user.role.replace('_', ' ').toUpperCase()}
+                                       </span>
+                                     </SelectValue>
+                                   </SelectTrigger>
+                                   <SelectContent>
+                                     <SelectItem value="admin">Admin</SelectItem>
+                                     <SelectItem value="farm_manager">Farm Manager</SelectItem>
+                                     <SelectItem value="staff">Staff</SelectItem>
+                                   </SelectContent>
+                                 </Select>
+                               </td>
+                               <td className="border border-border p-2">
+                                 {user.role === 'farm_manager' || user.role === 'staff' ? (
+                                   <Select
+                                     value={user.assigned_farm_id || ""}
+                                     onValueChange={(farmId) => updateUserPermissions(user.id, user.role, farmId)}
+                                   >
+                                     <SelectTrigger className="w-auto">
+                                       <SelectValue>
+                                         {assignedFarm ? (
+                                           <div className="text-sm">
+                                             <div className="font-medium">{assignedFarm.farm_name}</div>
+                                           </div>
+                                         ) : (
+                                           <span className="text-muted-foreground">No farm assigned</span>
+                                         )}
+                                       </SelectValue>
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                       <SelectItem value="">No assignment</SelectItem>
+                                       {farms.map((farm) => (
+                                         <SelectItem key={farm.id} value={farm.id}>
+                                           {farm.farm_name} - {farm.location}
+                                         </SelectItem>
+                                       ))}
+                                     </SelectContent>
+                                   </Select>
+                                 ) : (
+                                   <span className="text-muted-foreground">-</span>
+                                 )}
+                               </td>
+                               <td className="border border-border p-2">
+                                 <div className="flex flex-wrap gap-1">
+                                   {user.permissions.slice(0, 2).map((perm) => (
+                                     <Badge key={perm} variant="outline" className="text-xs">
+                                       {perm.replace('_', ' ')}
+                                     </Badge>
+                                   ))}
+                                   {user.permissions.length > 2 && (
+                                     <Badge variant="secondary" className="text-xs">
+                                       +{user.permissions.length - 2} more
+                                     </Badge>
+                                   )}
+                                 </div>
+                               </td>
+                               <td className="border border-border p-2 text-sm">
+                                 {new Date(user.created_at).toLocaleDateString()}
+                               </td>
+                               <td className="border border-border p-2">
+                                 <Button
+                                   variant="destructive"
+                                   size="sm"
+                                   onClick={() => deleteUser(user.id)}
+                                   className="h-8 w-8 p-0"
+                                 >
+                                   <Trash2 className="h-4 w-4" />
+                                 </Button>
+                               </td>
+                             </tr>
+                           );
+                         })}
+                       </tbody>
+                     </table>
                   </div>
                 )}
               </CardContent>
