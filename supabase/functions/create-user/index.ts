@@ -66,11 +66,6 @@ const handler = async (req: Request): Promise<Response> => {
       email,
       password,
       email_confirm: true, // Auto-confirm email
-      user_metadata: {
-        role,
-        permissions,
-        assigned_farm_id: assignedFarmId || null,
-      }
     });
 
     if (authError) {
