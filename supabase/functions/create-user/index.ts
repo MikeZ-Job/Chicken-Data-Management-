@@ -45,17 +45,6 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Create the user with admin client (no email verification needed)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true, // Auto-confirm email
-    });
-
-    if (authError) {
-      throw authError;
-    }
-
     // Get permissions for the role
     const getPermissionsForRole = (userRole: string): string[] => {
       switch (userRole) {
@@ -72,20 +61,61 @@ const handler = async (req: Request): Promise<Response> => {
 
     const permissions = getPermissionsForRole(role);
 
-    // Update the app_users record
-    const { error: updateError } = await supabaseAdmin
-      .from('app_users')
-      .update({
+    // Create the user with admin client (no email verification needed)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // Auto-confirm email
+      user_metadata: {
         role,
         permissions,
         assigned_farm_id: assignedFarmId || null,
-      })
-      .eq('id', authData.user.id);
+      }
+    });
 
-    if (updateError) {
-      // If updating app_users fails, delete the auth user to maintain consistency
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
-      throw updateError;
+    if (authError) {
+      throw authError;
+    }
+
+    // Check if app_users record exists, if not create it, otherwise update it
+    const { data: existingUser } = await supabaseAdmin
+      .from('app_users')
+      .select('id')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (existingUser) {
+      // Update existing record
+      const { error: updateError } = await supabaseAdmin
+        .from('app_users')
+        .update({
+          role,
+          permissions,
+          assigned_farm_id: assignedFarmId || null,
+        })
+        .eq('id', authData.user.id);
+
+      if (updateError) {
+        console.error('Error updating app_users:', updateError);
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        throw updateError;
+      }
+    } else {
+      // Create new record (in case trigger didn't work)
+      const { error: insertError } = await supabaseAdmin
+        .from('app_users')
+        .insert({
+          id: authData.user.id,
+          role,
+          permissions,
+          assigned_farm_id: assignedFarmId || null,
+        });
+
+      if (insertError) {
+        console.error('Error inserting app_users:', insertError);
+        await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+        throw insertError;
+      }
     }
 
     return new Response(
