@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           assigned_farm_id: string | null
           created_at: string
+          expiry_date: string | null
           id: string
           permissions: string[] | null
           role: Database["public"]["Enums"]["user_role"]
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           assigned_farm_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
           permissions?: string[] | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -34,6 +36,7 @@ export type Database = {
         Update: {
           assigned_farm_id?: string | null
           created_at?: string
+          expiry_date?: string | null
           id?: string
           permissions?: string[] | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -340,6 +343,10 @@ export type Database = {
       }
       is_staff: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_user_expired: {
+        Args: { user_id: string }
         Returns: boolean
       }
     }

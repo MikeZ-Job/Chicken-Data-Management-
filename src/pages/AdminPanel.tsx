@@ -27,9 +27,11 @@ import {
 
 interface User {
   id: string;
+  email?: string;
   role: 'admin' | 'farm_manager' | 'staff';
   permissions: string[];
   assigned_farm_id?: string;
+  expiry_date?: string;
   created_at: string;
 }
 
@@ -50,10 +52,12 @@ const AdminPanel = () => {
     email: string;
     role: 'admin' | 'farm_manager' | 'staff';
     assignedFarmId: string;
+    expiryDate: string;
   }>({ 
     email: "", 
     role: "staff", 
-    assignedFarmId: "" 
+    assignedFarmId: "",
+    expiryDate: ""
   });
   const [passwordReset, setPasswordReset] = useState({ email: "", newPassword: "" });
 
@@ -66,7 +70,7 @@ const AdminPanel = () => {
 
   const loadUsersAndFarms = async () => {
     try {
-      // Load users
+      // Load users with their email from auth.users
       const { data: usersData, error: usersError } = await supabase
         .from('app_users')
         .select(`
@@ -74,10 +78,28 @@ const AdminPanel = () => {
           role,
           permissions,
           assigned_farm_id,
+          expiry_date,
           created_at
         `);
 
       if (usersError) throw usersError;
+
+      // Get user emails from auth.users table using RPC or service role
+      const usersWithEmails = [];
+      for (const user of usersData || []) {
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(user.id);
+          usersWithEmails.push({
+            ...user,
+            email: authUser.user?.email || 'N/A'
+          });
+        } catch {
+          usersWithEmails.push({
+            ...user,
+            email: 'N/A'
+          });
+        }
+      }
 
       // Load farms
       const { data: farmsData, error: farmsError } = await supabase
@@ -86,7 +108,7 @@ const AdminPanel = () => {
 
       if (farmsError) throw farmsError;
 
-      setUsers(usersData || []);
+      setUsers(usersWithEmails || []);
       setFarms(farmsData || []);
     } catch (error) {
       toast({
@@ -122,24 +144,45 @@ const AdminPanel = () => {
       return;
     }
 
+    // Validate assigned_farm_id if provided
+    if (newUser.assignedFarmId && !farms.some(f => f.id === newUser.assignedFarmId)) {
+      toast({
+        title: "Error",
+        description: "Invalid farm assignment",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate expiry date if provided
+    if (newUser.expiryDate && new Date(newUser.expiryDate) <= new Date()) {
+      toast({
+        title: "Error",
+        description: "Expiry date must be in the future",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Call edge function to create user without email verification
+      // Call edge function to create user
       const { data, error } = await supabase.functions.invoke('create-user', {
         body: {
           email: newUser.email,
           role: newUser.role,
           assignedFarmId: newUser.assignedFarmId || null,
+          expiryDate: newUser.expiryDate || null,
         },
       });
 
       if (error) throw error;
 
       await loadUsersAndFarms();
-      setNewUser({ email: "", role: "staff", assignedFarmId: "" });
+      setNewUser({ email: "", role: "staff", assignedFarmId: "", expiryDate: "" });
       
       toast({
         title: "Success",
-        description: "User added successfully with temporary password 'TempPassword123!' - they should change it on first login.",
+        description: "User added successfully! They will receive login credentials via email.",
       });
     } catch (error: any) {
       toast({
@@ -280,23 +323,27 @@ const AdminPanel = () => {
           <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Add New User</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  + Add User
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="userEmail">Email</Label>
+                    <Label htmlFor="userEmail">Email *</Label>
                     <Input
                       id="userEmail"
                       type="email"
                       value={newUser.email}
                       onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                       placeholder="user@farm.com"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Role</Label>
+                    <Label>Role *</Label>
                     <Select
                       value={newUser.role}
                       onValueChange={(value) => 
@@ -307,33 +354,43 @@ const AdminPanel = () => {
                         <SelectValue placeholder="Select role" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="admin">Admin - Full access to all farms and settings</SelectItem>
-                        <SelectItem value="farm_manager">Farm Manager - Manage assigned farm</SelectItem>
-                        <SelectItem value="staff">Staff - Record data and view assigned farm</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="farm_manager">Farm Manager</SelectItem>
+                        <SelectItem value="staff">Staff</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
-                  {newUser.role === 'farm_manager' && (
-                    <div className="space-y-2">
-                      <Label htmlFor="assignedFarm">Assigned Farm</Label>
-                      <Select
-                        value={newUser.assignedFarmId}
-                        onValueChange={(value) => setNewUser({ ...newUser, assignedFarmId: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select farm to assign" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {farms.map((farm) => (
-                            <SelectItem key={farm.id} value={farm.id}>
-                              {farm.farm_name} - {farm.location}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="assignedFarm">Assigned Farm</Label>
+                    <Select
+                      value={newUser.assignedFarmId}
+                      onValueChange={(value) => setNewUser({ ...newUser, assignedFarmId: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select farm" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No assignment</SelectItem>
+                        {farms.map((farm) => (
+                          <SelectItem key={farm.id} value={farm.id}>
+                            {farm.farm_name} - {farm.location}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input
+                      id="expiryDate"
+                      type="date"
+                      value={newUser.expiryDate}
+                      onChange={(e) => setNewUser({ ...newUser, expiryDate: e.target.value })}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
                   
                   <div className="flex items-end">
                     <Button onClick={addUser} className="w-full">
@@ -341,6 +398,12 @@ const AdminPanel = () => {
                       Add User
                     </Button>
                   </div>
+                </div>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  <p>* Required fields. Users will receive login credentials via email.</p>
+                  <p>• Admin: Full access to all farms and settings</p>
+                  <p>• Farm Manager: Manage assigned farm and staff</p>
+                  <p>• Staff: Record data and view assigned farm only</p>
                 </div>
               </CardContent>
             </Card>
@@ -385,20 +448,25 @@ const AdminPanel = () => {
                        <thead>
                          <tr className="bg-muted">
                            <th className="border border-border p-2 text-left">User ID</th>
+                           <th className="border border-border p-2 text-left">Email</th>
                            <th className="border border-border p-2 text-left">Role</th>
                            <th className="border border-border p-2 text-left">Assigned Farm</th>
                            <th className="border border-border p-2 text-left">Permissions</th>
-                           <th className="border border-border p-2 text-left">Created</th>
+                           <th className="border border-border p-2 text-left">Expiry Date</th>
                            <th className="border border-border p-2 text-left">Actions</th>
                          </tr>
                        </thead>
                        <tbody>
                          {users.map((user) => {
                            const assignedFarm = farms.find(f => f.id === user.assigned_farm_id);
+                           const isExpired = user.expiry_date && new Date(user.expiry_date) <= new Date();
                            return (
-                             <tr key={user.id}>
+                             <tr key={user.id} className={isExpired ? "bg-red-50" : ""}>
                                <td className="border border-border p-2 font-mono text-xs">
                                  {user.id.slice(0, 8)}...
+                               </td>
+                               <td className="border border-border p-2 text-sm">
+                                 {user.email}
                                </td>
                                <td className="border border-border p-2">
                                  <Select
@@ -452,21 +520,31 @@ const AdminPanel = () => {
                                  ) : (
                                    <span className="text-muted-foreground">-</span>
                                  )}
-                               </td>
-                               <td className="border border-border p-2">
-                                 <div className="flex flex-wrap gap-1">
-                                   {user.permissions.slice(0, 2).map((perm) => (
-                                     <Badge key={perm} variant="outline" className="text-xs">
-                                       {perm.replace('_', ' ')}
-                                     </Badge>
-                                   ))}
-                                   {user.permissions.length > 2 && (
-                                     <Badge variant="secondary" className="text-xs">
-                                       +{user.permissions.length - 2} more
-                                     </Badge>
+                                 </td>
+                                 <td className="border border-border p-2">
+                                   <div className="flex flex-wrap gap-1">
+                                     {user.permissions.slice(0, 2).map((perm) => (
+                                       <Badge key={perm} variant="outline" className="text-xs">
+                                         {perm.replace('_', ' ')}
+                                       </Badge>
+                                     ))}
+                                     {user.permissions.length > 2 && (
+                                       <Badge variant="secondary" className="text-xs">
+                                         +{user.permissions.length - 2} more
+                                       </Badge>
+                                     )}
+                                   </div>
+                                 </td>
+                                 <td className="border border-border p-2 text-sm">
+                                   {user.expiry_date ? (
+                                     <span className={isExpired ? "text-red-600 font-medium" : ""}>
+                                       {new Date(user.expiry_date).toLocaleDateString()}
+                                       {isExpired && " (Expired)"}
+                                     </span>
+                                   ) : (
+                                     <span className="text-muted-foreground">No expiry</span>
                                    )}
-                                 </div>
-                               </td>
+                                 </td>
                                <td className="border border-border p-2 text-sm">
                                  {new Date(user.created_at).toLocaleDateString()}
                                </td>

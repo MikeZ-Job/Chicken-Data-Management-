@@ -12,6 +12,7 @@ interface CreateUserRequest {
   password?: string;
   role: 'admin' | 'farm_manager' | 'staff';
   assignedFarmId?: string;
+  expiryDate?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -33,7 +34,7 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-    const { email, password = "TempPassword123!", role, assignedFarmId }: CreateUserRequest = await req.json();
+    const { email, password = "TempPassword123!", role, assignedFarmId, expiryDate }: CreateUserRequest = await req.json();
 
     if (!email || !role) {
       return new Response(
@@ -87,6 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
           role,
           permissions,
           assigned_farm_id: assignedFarmId || null,
+          expiry_date: expiryDate || null,
         })
         .eq('id', authData.user.id);
 
@@ -104,6 +106,7 @@ const handler = async (req: Request): Promise<Response> => {
           role,
           permissions,
           assigned_farm_id: assignedFarmId || null,
+          expiry_date: expiryDate || null,
         });
 
       if (insertError) {
@@ -122,6 +125,7 @@ const handler = async (req: Request): Promise<Response> => {
           role,
           permissions,
           assigned_farm_id: assignedFarmId || null,
+          expiry_date: expiryDate || null,
         },
       }),
       {
