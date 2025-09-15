@@ -56,7 +56,7 @@ const AdminPanel = () => {
   }>({ 
     email: "", 
     role: "staff", 
-    assignedFarmId: "",
+    assignedFarmId: "none",
     expiryDate: ""
   });
   const [passwordReset, setPasswordReset] = useState({ email: "", newPassword: "" });
@@ -144,8 +144,8 @@ const AdminPanel = () => {
       return;
     }
 
-    // Validate assigned_farm_id if provided
-    if (newUser.assignedFarmId && !farms.some(f => f.id === newUser.assignedFarmId)) {
+    // Validate assigned_farm_id if provided (ignore "none" value)
+    if (newUser.assignedFarmId && newUser.assignedFarmId !== "none" && !farms.some(f => f.id === newUser.assignedFarmId)) {
       toast({
         title: "Error",
         description: "Invalid farm assignment",
@@ -170,7 +170,7 @@ const AdminPanel = () => {
         body: {
           email: newUser.email,
           role: newUser.role,
-          assignedFarmId: newUser.assignedFarmId || null,
+          assignedFarmId: newUser.assignedFarmId === "none" ? null : newUser.assignedFarmId,
           expiryDate: newUser.expiryDate || null,
         },
       });
@@ -178,7 +178,7 @@ const AdminPanel = () => {
       if (error) throw error;
 
       await loadUsersAndFarms();
-      setNewUser({ email: "", role: "staff", assignedFarmId: "", expiryDate: "" });
+      setNewUser({ email: "", role: "staff", assignedFarmId: "none", expiryDate: "" });
       
       toast({
         title: "Success",
@@ -371,7 +371,7 @@ const AdminPanel = () => {
                         <SelectValue placeholder="Select farm" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No assignment</SelectItem>
+                        <SelectItem value="none">No assignment</SelectItem>
                         {farms.map((farm) => (
                           <SelectItem key={farm.id} value={farm.id}>
                             {farm.farm_name} - {farm.location}
@@ -391,7 +391,6 @@ const AdminPanel = () => {
                       min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
-                  
                   <div className="flex items-end">
                     <Button onClick={addUser} className="w-full">
                       <Plus className="h-4 w-4 mr-2" />
@@ -493,9 +492,9 @@ const AdminPanel = () => {
                                </td>
                                <td className="border border-border p-2">
                                  {user.role === 'farm_manager' || user.role === 'staff' ? (
-                                   <Select
-                                     value={user.assigned_farm_id || ""}
-                                     onValueChange={(farmId) => updateUserPermissions(user.id, user.role, farmId)}
+                                    <Select
+                                      value={user.assigned_farm_id || "none"}
+                                      onValueChange={(farmId) => updateUserPermissions(user.id, user.role, farmId === "none" ? null : farmId)}
                                    >
                                      <SelectTrigger className="w-auto">
                                        <SelectValue>
@@ -508,14 +507,14 @@ const AdminPanel = () => {
                                          )}
                                        </SelectValue>
                                      </SelectTrigger>
-                                     <SelectContent>
-                                       <SelectItem value="">No assignment</SelectItem>
-                                       {farms.map((farm) => (
-                                         <SelectItem key={farm.id} value={farm.id}>
-                                           {farm.farm_name} - {farm.location}
-                                         </SelectItem>
-                                       ))}
-                                     </SelectContent>
+                                      <SelectContent>
+                                        <SelectItem value="none">No assignment</SelectItem>
+                                        {farms.map((farm) => (
+                                          <SelectItem key={farm.id} value={farm.id}>
+                                            {farm.farm_name} - {farm.location}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
                                    </Select>
                                  ) : (
                                    <span className="text-muted-foreground">-</span>
