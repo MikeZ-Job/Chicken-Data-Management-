@@ -70,7 +70,7 @@ const AdminPanel = () => {
 
   const loadUsersAndFarms = async () => {
     try {
-      // Load users with their email from auth.users
+      // Load users - we'll get emails from a separate edge function
       const { data: usersData, error: usersError } = await supabase
         .from('app_users')
         .select(`
@@ -84,22 +84,15 @@ const AdminPanel = () => {
 
       if (usersError) throw usersError;
 
-      // Get user emails from auth.users table using RPC or service role
-      const usersWithEmails = [];
-      for (const user of usersData || []) {
-        try {
-          const { data: authUser } = await supabase.auth.admin.getUserById(user.id);
-          usersWithEmails.push({
-            ...user,
-            email: authUser.user?.email || 'N/A'
-          });
-        } catch {
-          usersWithEmails.push({
-            ...user,
-            email: 'N/A'
-          });
-        }
-      }
+      // Use edge function to get user emails safely
+      const { data: emailsData, error: emailsError } = await supabase.functions.invoke('get-user-emails', {
+        body: { userIds: usersData?.map(u => u.id) || [] }
+      });
+
+      const usersWithEmails = usersData?.map(user => ({
+        ...user,
+        email: emailsData?.emails?.[user.id] || 'N/A'
+      })) || [];
 
       // Load farms
       const { data: farmsData, error: farmsError } = await supabase
