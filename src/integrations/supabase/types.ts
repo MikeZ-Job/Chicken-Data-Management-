@@ -272,6 +272,53 @@ export type Database = {
           },
         ]
       }
+      salary_tracking: {
+        Row: {
+          amount_due: number | null
+          amount_paid: number | null
+          created_at: string
+          farm_id: string | null
+          id: string
+          payment_date: string | null
+          payment_status: string | null
+          salary_amount: number
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          amount_due?: number | null
+          amount_paid?: number | null
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_status?: string | null
+          salary_amount: number
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          amount_due?: number | null
+          amount_paid?: number | null
+          created_at?: string
+          farm_id?: string | null
+          id?: string
+          payment_date?: string | null
+          payment_status?: string | null
+          salary_amount?: number
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "salary_tracking_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       weight_standards: {
         Row: {
           age_in_days: number
@@ -327,6 +374,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      workers: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          farm_id: string | null
+          food_allocated: number | null
+          full_name: string
+          id: string
+          national_id_number: string | null
+          phone_number: string | null
+          role: string
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          farm_id?: string | null
+          food_allocated?: number | null
+          full_name: string
+          id?: string
+          national_id_number?: string | null
+          phone_number?: string | null
+          role: string
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          farm_id?: string | null
+          food_allocated?: number | null
+          full_name?: string
+          id?: string
+          national_id_number?: string | null
+          phone_number?: string | null
+          role?: string
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {

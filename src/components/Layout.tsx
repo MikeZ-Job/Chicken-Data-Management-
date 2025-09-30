@@ -59,9 +59,10 @@ const sidebarGroups = [
     ]
   },
   {
-    title: "Worker Food Records",
+    title: "Worker Management",
     collapsible: true,
     items: [
+      { name: "Worker Management", path: "/worker-management" },
       { name: "Add Worker Food", path: "/add-worker-food" },
       { name: "View Worker Food", path: "/view-worker-food" },
     ]

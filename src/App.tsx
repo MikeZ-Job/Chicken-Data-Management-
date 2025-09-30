@@ -18,6 +18,7 @@ import AddMedicineInventory from "./pages/AddMedicineInventory";
 import ViewMedicineInventory from "./pages/ViewMedicineInventory";
 import AddWorkerFood from "./pages/AddWorkerFood";
 import ViewWorkerFood from "./pages/ViewWorkerFood";
+import WorkerManagement from "./pages/WorkerManagement";
 import AddProcessingRecord from "./pages/AddProcessingRecord";
 import ViewProcessingRecords from "./pages/ViewProcessingRecords";
 import AdminPanel from "./pages/AdminPanel";
@@ -117,6 +118,11 @@ const App = () => (
             <Route path="/view-worker-food" element={
               <ProtectedRoute>
                 <ViewWorkerFood />
+              </ProtectedRoute>
+            } />
+            <Route path="/worker-management" element={
+              <ProtectedRoute>
+                <WorkerManagement />
               </ProtectedRoute>
             } />
             <Route path="/add-processing-record" element={
